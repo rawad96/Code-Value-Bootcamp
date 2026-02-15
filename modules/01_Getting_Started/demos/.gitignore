@@ -1,0 +1,13 @@
+# Ignore virtual environment folders
+venv/
+
+# Ignore PyCharm project settings folder
+.idea/
+
+# Ignore Python bytecode and cache directories
+__pycache__/
+*.py[cod]
+**/*.pyc
+
+# Ignore Java compiled files
+*.class
