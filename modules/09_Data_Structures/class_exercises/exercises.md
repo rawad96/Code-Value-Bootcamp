@@ -17,13 +17,13 @@
 
 ---
 
-
 ## Exercise 2: Nested Data Structure Analysis with Comprehensions
 
 **Description:**
 Work with nested data structures representing a company's organizational data. Use list and dictionary comprehensions to extract and transform information efficiently.
 
 **Requirements:**
+
 - Given a nested structure of departments, teams, and employees (see example below)
 - Implement `get_all_employee_names(company: dict) -> list[str]` - returns a flat list of all employee names using list comprehension
 - Implement `get_employees_by_department(company: dict, department: str) -> list[str]` - returns employee names for a specific department using list comprehension
@@ -81,3 +81,4 @@ avg_salaries = get_average_salary_by_department(company)
 # Get high earners above 100000
 high_earners = get_high_earners(company, 100000)
 # Output: {'Engineering': ['Alice', 'Bob', 'Charlie'], 'Sales': []}
+```

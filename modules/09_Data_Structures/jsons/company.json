@@ -1,0 +1,34 @@
+{
+    "departments": [
+        {
+            "name": "Engineering",
+            "teams": [
+                {
+                    "name": "Backend",
+                    "employees": [
+                        {"name": "Alice", "salary": 120000},
+                        {"name": "Bob", "salary": 110000}
+                    ]
+                },
+                {
+                    "name": "Frontend",
+                    "employees": [
+                        {"name": "Charlie", "salary": 105000}
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Sales",
+            "teams": [
+                {
+                    "name": "Direct Sales",
+                    "employees": [
+                        {"name": "Diana", "salary": 95000},
+                        {"name": "Eve", "salary": 98000}
+                    ]
+                }
+            ]
+        }
+    ]
+}
