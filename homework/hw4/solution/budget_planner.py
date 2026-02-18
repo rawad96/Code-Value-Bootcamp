@@ -1,6 +1,5 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List
 
 
 @dataclass
@@ -23,8 +22,8 @@ def remove_by_index(items: list, index: int) -> None:
 
 class BudgetPlanner:
     def __init__(self) -> None:
-        self._incomes: List[Income] = []
-        self._expenses: List[Expense] = []
+        self._incomes: list[Income] = []
+        self._expenses: list[Expense] = []
 
     def add_income(self, description: str, amount: float) -> None:
         if amount <= 0:
@@ -57,9 +56,9 @@ class BudgetPlanner:
         }
 
     @property
-    def incomes(self) -> List[Income]:
+    def incomes(self) -> list[Income]:
         return list(self._incomes)
 
     @property
-    def expenses(self) -> List[Expense]:
+    def expenses(self) -> list[Expense]:
         return list(self._expenses)
