@@ -11,7 +11,8 @@ class Product(Item, DiscountMixin, ShippingMixin):
         self.discount_percent = discount_percent
 
     def get_info(self) -> str:
-        return f"Item: {self.name}\nBase Price: {self.base_price}\nWeight: {self.weight}\nDiscount: {self.discount_percent}\nShipping cost: {self.get_shipping_cost()}"
+        return f"""Item: {self.name}\nBase Price: {self.base_price}\nWeight: {self.weight}
+Discount: {self.discount_percent}\nShipping cost: {self.get_shipping_cost()}"""
 
     def get_total_cost(self) -> float:
         return self.get_price() + self.get_shipping_cost()
