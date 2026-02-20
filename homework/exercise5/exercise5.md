@@ -18,13 +18,13 @@
 
 ---
 
-
 ## Exercise 1: E-commerce System with Multiple Inheritance
 
 **Description:**
 Create a class hierarchy that demonstrates multiple inheritance in a real-world e-commerce scenario. You'll implement classes that handle different aspects of an online store: inventory management, discount pricing, and shipping calculations. The final `Product` class will inherit from multiple base classes and override methods appropriately.
 
 **Requirements:**
+
 - Create a base class `Item` with:
   - Instance attributes: `name` (str), `base_price` (float), `weight` (float in kg)
   - Method `get_info() -> str` that returns a formatted string with item details
@@ -79,6 +79,7 @@ print(ebook.get_info())
 Design and implement an employee management system that demonstrates single inheritance. Your system should model different types of employees in a company, where specialized employee types inherit from more general ones. The inheritance hierarchy should reflect real-world organizational structures.
 
 **Learning Objectives:**
+
 - Understand and implement single inheritance hierarchies
 - Practice method overriding and extension in subclasses
 - Use `super()` to call parent class methods
@@ -86,6 +87,7 @@ Design and implement an employee management system that demonstrates single inhe
 - Implement polymorphism through inheritance
 
 **Requirements:**
+
 - Create a class hierarchy with 2-3 levels of inheritance (no more than 3 levels)
 - The base class should represent a general employee with common attributes and behavior
 - Derived classes should represent more specialized types of employees
@@ -120,6 +122,7 @@ The system must track three types of employees with the following data and compe
    - Additional responsibility: Must track and report team size
 
 **Specific Requirements:**
+
 - Employee IDs must be stored and retrievable
 - All monetary values should be in dollars (float)
 - Compensation calculations must return monthly pay amounts
@@ -127,6 +130,7 @@ The system must track three types of employees with the following data and compe
 - The system should clearly show the difference between hourly, salaried, and bonus-based compensation
 
 **Design Considerations:**
+
 - How should you structure the inheritance: Base → Full-Time → Manager?
 - What attributes are common to all employees (should be in base class)?
 - Which compensation calculation should be in the base class, and how should subclasses override it?
@@ -180,6 +184,7 @@ for emp in employees:
 ```
 
 **Testing Requirements:**
+
 - Write at least 5 unit tests that verify:
   - Base Employee compensation calculation (hourly rate × 160 = monthly pay)
   - Full-Time Employee compensation calculation (annual salary ÷ 12 = monthly pay)
@@ -188,6 +193,7 @@ for emp in employees:
   - Information display includes all relevant data for each employee type (ID, name, and type-specific fields)
 
 **Constraints:**
+
 - Maximum 3 levels of inheritance (Employee → FullTimeEmployee → Manager)
 - Use type hints for all method parameters and return values
 - Each class should have a clear, single responsibility
@@ -197,13 +203,13 @@ for emp in employees:
 
 ---
 
-
 ## Exercise 3: Implement Your Own LRU Cache with TTL
 
 **Description:**
 Implement a custom Least Recently Used (LRU) Cache class called `MyLruCache` that efficiently manages cached items with both size constraints and time-to-live (TTL) expiration. This exercise will challenge you to design and combine appropriate data structures to achieve optimal performance characteristics.
 
 **Learning Objectives:**
+
 - Understand and implement the LRU (Least Recently Used) cache eviction policy
 - Design and combine appropriate data structures to achieve O(1) operations
 - Work with time-based expiration (TTL - Time To Live)
@@ -212,6 +218,7 @@ Implement a custom Least Recently Used (LRU) Cache class called `MyLruCache` tha
 
 **Background:**
 An LRU Cache is a data structure that:
+
 - Stores key-value pairs with a maximum capacity (maxsize)
 - When the cache is full and a new item is added, it removes the least recently used item
 - "Recently used" means either accessed (via get) or added/updated (via set)
@@ -333,6 +340,7 @@ Write comprehensive unit tests using `pytest` that verify:
    - `__contains__` respects TTL expiration
 
 **Constraints:**
+
 - You may NOT use Python's `functools.lru_cache` or any third-party caching libraries
 - You MUST design and implement your own solution that achieves O(1) performance
 - Both `get()` and `set()` must be O(1) average time complexity
