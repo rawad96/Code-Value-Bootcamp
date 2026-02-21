@@ -1,4 +1,6 @@
-from employee import Employee
+from .employee import Employee
+
+NUMBER_OF_MONTHS = 12
 
 
 class FullTimer(Employee):
@@ -9,10 +11,11 @@ class FullTimer(Employee):
 
     def get_wage(self) -> float:
         """returns wage per month"""
-        return self.annual_salary / 12
+        return self.annual_salary / NUMBER_OF_MONTHS
 
     def get_info(self) -> str:
-        return f"""ID: {self.id}
-Name: {self.name}
+        return f"""Full-Time Employee {self.id}:
+{self.name}
 Department: {self.department}
-Per Month Wage: {self.get_wage()}$"""
+Per Month: ${self.get_wage():.2f}
+Salary: ${self.annual_salary}/year"""

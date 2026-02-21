@@ -1,4 +1,6 @@
-from full_timer_employee import FullTimer
+from .full_timer_employee import FullTimer
+
+NUMBER_OF_MONTHS = 12
 
 
 class Manager(FullTimer):
@@ -11,7 +13,7 @@ class Manager(FullTimer):
         reports: int,
         bonus: float,
     ):
-        super().__init__(self, id, name, annual_salary, department)
+        super().__init__(id, name, annual_salary, department)
         self.reports = reports
         if not 0 <= bonus <= 1:
             raise ValueError("Bonus must be between 0 and 1")
@@ -19,11 +21,13 @@ class Manager(FullTimer):
 
     def get_wage(self) -> float:
         """returns wage per month"""
-        return (self.annual_salary / 12) * (1 + self.bonus)
+        return (self.annual_salary / NUMBER_OF_MONTHS) * (1 + self.bonus)
 
     def get_info(self) -> str:
-        return f"""ID: {self.id}
-Name: {self.name}
+        return f"""Manager {self.id}:
+{self.name}
 Department: {self.department}
-Number of Reports: {self.reports}
-Per Month Wage: {self.get_wage()}"""
+Team Size: {self.reports}
+Per Month: ${self.get_wage():.2f}
+Salary: ${self.annual_salary}/year
+Bonus: {self.bonus * 100}%"""
