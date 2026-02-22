@@ -19,8 +19,6 @@ def main() -> None:
 
     start_time = time.time()
 
-    results = []
-
     with ProcessPoolExecutor(max_workers=8) as executor:
         future_to_id = {
             executor.submit(fetch_todo, todo_id): todo_id
@@ -29,7 +27,6 @@ def main() -> None:
 
         for future in as_completed(future_to_id):
             todo = future.result()
-            results.append(todo)
             print(f"TODO {future_to_id[future]}: {todo['title']}")
 
     total_time = time.time() - start_time

@@ -16,18 +16,21 @@
 Implement three Python programs that fetch TODO items from the JSONPlaceholder API concurrently. Each program will use a different concurrency approach to fetch 20 TODO items and print their titles. This exercise demonstrates the differences between threading, multiprocessing, and asyncio approaches to concurrency.
 
 **Learning Objectives:**
+
 - Understand different concurrency models in Python
 - Compare thread-based, process-based, and async-based concurrency
 - Work with external APIs using different HTTP libraries
 - Measure and compare performance across different approaches
 
 **API Information:**
+
 - Base URL: `https://jsonplaceholder.typicode.com/todos/<number>`
 - Replace `<number>` with TODO item IDs from 1 to 20
 - Example: `https://jsonplaceholder.typicode.com/todos/1`
 - Each request returns a JSON object with fields: `id`, `title`, `completed`, `userId`
 
 **Common Requirements for All Programs:**
+
 - Fetch TODO items with IDs from 1 to 20 (20 total items)
 - Print the title of each TODO item as it's fetched
 - Measure and display the total execution time
@@ -40,6 +43,7 @@ Implement three Python programs that fetch TODO items from the JSONPlaceholder A
 ### Part 1: ThreadPoolExecutor Implementation
 
 **Requirements:**
+
 - Create a program named `fetch_todos_threading.py`
 - Use `concurrent.futures.ThreadPoolExecutor` for concurrency
 - Use the `requests` library for HTTP requests (you'll need to install it: `pip install requests`)
@@ -50,6 +54,7 @@ Implement three Python programs that fetch TODO items from the JSONPlaceholder A
 - Print summary statistics: total time, average time per request
 
 **Example Output:**
+
 ```
 Fetching 20 TODO items using ThreadPoolExecutor...
 TODO 3: fugiat veniam minus
@@ -65,6 +70,7 @@ Average time per request: 0.043 seconds
 ```
 
 **Hints:**
+
 - Use `executor.submit()` to submit tasks and collect futures
 - Use `concurrent.futures.as_completed()` to process results as they complete
 
@@ -73,6 +79,7 @@ Average time per request: 0.043 seconds
 ### Part 2: ProcessPoolExecutor Implementation
 
 **Requirements:**
+
 - Create a program named `fetch_todos_multiprocessing.py`
 - Use `concurrent.futures.ProcessPoolExecutor` for concurrency
 - Use the `requests` library for HTTP requests
@@ -82,12 +89,14 @@ Average time per request: 0.043 seconds
 - Measure execution time and print summary statistics
 
 **Important Notes:**
+
 - ProcessPoolExecutor creates separate Python processes, which have more overhead than threads
 - For I/O-bound tasks like HTTP requests, ProcessPoolExecutor is typically **not** the best choice
 - This exercise helps you understand when **not** to use multiprocessing
 - Compare the performance with the threading version
 
 **Example Output:**
+
 ```
 Fetching 20 TODO items using ProcessPoolExecutor...
 TODO 1: delectus aut autem
@@ -101,3 +110,36 @@ Total execution time: 1.23 seconds
 Average time per request: 0.062 seconds
 ```
 
+### Part 3: Asyncio with aiohttp Implementation
+
+**Requirements:**
+
+- Create a program named `fetch_todos_asyncio.py`
+- Use `asyncio` for concurrency
+- Use the `aiohttp` library for HTTP requests (you'll need to install it: `pip install aiohttp`)
+- Create an async function `async def fetch_todo(session: aiohttp.ClientSession, todo_id: int) -> dict[str, Any]` that fetches a single TODO item
+- Use `asyncio.gather()` to fetch all 20 items concurrently
+- Print each TODO title as it's received
+- Measure execution time and print summary statistics
+- Properly manage the aiohttp ClientSession (use async context manager)
+
+**Example Output:**
+
+```
+Fetching 20 TODO items using asyncio and aiohttp...
+TODO 2: quis ut nam facilis et officia qui
+TODO 1: delectus aut autem
+TODO 5: laboriosam mollitia et enim quasi adipisci quia provident illum
+TODO 3: fugiat veniam minus
+...
+TODO 20: ullam nobis libero sapiente ad optio sint
+
+Summary:
+Total execution time: 0.42 seconds
+Average time per request: 0.021 seconds
+```
+
+**Hints:**
+
+- Look at `modules\12_Concurrency\demos\async_download_and_process.py`
+- And `modules\12_Concurrency\demos\good_and_bad_async_handlers\good_request_handler.py`

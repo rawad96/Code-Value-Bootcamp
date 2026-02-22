@@ -9,6 +9,7 @@ DB_URL = f"http://{HOST}:{DB_PORT}/query"
 
 app = FastAPI(title="Good Request Handler Example")
 
+
 @app.get("/get_data")
 async def get_data() -> Dict[str, str]:
     """
@@ -21,5 +22,9 @@ async def get_data() -> Dict[str, str]:
 
 
 if __name__ == "__main__":
+
+    obj = await get_data()
+
     import uvicorn
+
     uvicorn.run(app, host=HOST, port=GOOD_HANDLER_PORT)
