@@ -23,7 +23,7 @@ async def get_data() -> Dict[str, str]:
 
 if __name__ == "__main__":
 
-    obj = await get_data()
+    # obj = await get_data()
 
     import uvicorn
 

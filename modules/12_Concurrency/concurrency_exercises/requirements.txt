@@ -1,0 +1,12 @@
+black
+flake8
+wemake-python-styleguide
+mypy
+pytest
+# Http Clients
+aiohttp==3.13.3
+requests==2.32.5
+
+# Web Frameworks
+fastapi[standard]
+uvicorn
