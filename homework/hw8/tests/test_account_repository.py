@@ -1,13 +1,13 @@
 import tempfile
 from pathlib import Path
 from decimal import Decimal
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from solution.models.account import Account
 from solution.repository.account_repository import AccountRepository
 from solution.repository.csv_accessor import CsvFileAccessor
 
-from typing import List
+from constants.headers import account_headers
 
 
 def test_account_repository_create():
@@ -16,7 +16,7 @@ def test_account_repository_create():
 
         accessor = CsvFileAccessor(
             file_name="accounts.csv",
-            headers=["id", "name", "opening_balance"],
+            headers=account_headers,
             base_path=tmp_path,
         )
 
@@ -51,7 +51,7 @@ def test_account_repository_get_by_id():
 
         accessor = CsvFileAccessor(
             file_name="accounts.csv",
-            headers=["id", "name", "opening_balance"],
+            headers=account_headers,
             base_path=tmp_path,
         )
 
@@ -78,7 +78,7 @@ def test_account_repository_get_all():
 
         accessor = CsvFileAccessor(
             file_name="accounts.csv",
-            headers=["id", "name", "opening_balance"],
+            headers=account_headers,
             base_path=tmp_path,
         )
 
@@ -109,7 +109,7 @@ def test_account_repository_update():
 
         accessor = CsvFileAccessor(
             file_name="accounts.csv",
-            headers=["id", "name", "opening_balance"],
+            headers=account_headers,
             base_path=tmp_path,
         )
 
@@ -141,7 +141,7 @@ def test_account_repository_delete():
 
         accessor = CsvFileAccessor(
             file_name="accounts.csv",
-            headers=["id", "name", "opening_balance"],
+            headers=account_headers,
             base_path=tmp_path,
         )
 

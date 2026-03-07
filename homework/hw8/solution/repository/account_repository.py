@@ -1,21 +1,16 @@
 from .base_repository import BaseRepository
 from ..models.account import Account
 from .csv_accessor import CsvFileAccessor
-from typing import List
-from uuid import UUID, uuid4
-from pathlib import Path
+from uuid import UUID
 from decimal import Decimal
-
-APPEND_MODE = "a"
-WRITE_MODE = "w"
-READ_MODE = "r"
+from constants.headers import account_headers
 
 
 class AccountRepository(BaseRepository[Account]):
     def __init__(self, accessor: CsvFileAccessor):
         if accessor is None:
             accessor = CsvFileAccessor(
-                file_name="accounts.csv", headers=["id", "name", "opening_balance"]
+                file_name="accounts.csv", headers=account_headers
             )
 
         super().__init__(accessor)

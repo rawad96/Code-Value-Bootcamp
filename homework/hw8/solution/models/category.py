@@ -1,6 +1,6 @@
 from dataclasses import dataclass
+from .base_entity import BaseEntity
 from enum import Enum
-from uuid import UUID
 
 
 class CategoryType(Enum):
@@ -9,7 +9,6 @@ class CategoryType(Enum):
 
 
 @dataclass
-class Category:
-    id: UUID
+class Category(BaseEntity):
     name: str
     type: CategoryType
