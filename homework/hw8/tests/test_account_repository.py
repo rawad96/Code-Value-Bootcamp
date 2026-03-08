@@ -157,5 +157,5 @@ def test_account_repository_delete():
         file_path = tmp_path / "accounts.csv"
         assert file_path.exists()
 
-        repo.delete(str(uuid_id))
-        assert repo.get(str(uuid_id)) == None
+        repo.delete(uuid_id)
+        assert repo.get(uuid_id) == None
