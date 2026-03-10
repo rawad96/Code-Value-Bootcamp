@@ -1,201 +1,150 @@
-import tempfile
-from pathlib import Path
+import pytest
+from unittest.mock import Mock
 from uuid import uuid4
 from datetime import date
 
 from solution.models.transaction import Transaction
 
-from solution.repository.csv_accessor import CsvFileAccessor
 from solution.repository.transaction_repositort import TransactionRepository
 
-from constants.headers import transaction_headers
+
+@pytest.fixture
+def mock_accessor():
+    return Mock()
 
 
-def test_creat_transaction():
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        tmp_path = Path(tmpdirname)
+def test_creat_transaction(mock_accessor):
+    transaction_repo = TransactionRepository(accessor=mock_accessor)
 
-        transaction_accessor = CsvFileAccessor(
-            file_name="transactions.csv",
-            headers=transaction_headers,
-            base_path=tmp_path,
-        )
+    account_uuid = uuid4()
+    transaction_uuid = uuid4()
+    category_uuid = uuid4()
 
-        transaction_repo = TransactionRepository(accessor=transaction_accessor)
+    transaction = Transaction(
+        id=transaction_uuid,
+        account_id=account_uuid,
+        category_id=category_uuid,
+        amount=2000.00,
+        date=date.today(),
+    )
 
-        account_uuid = uuid4()
-        transaction_uuid = uuid4()
-        category_uuid = uuid4()
+    transaction_repo.create(transaction)
 
-        transaction = Transaction(
-            id=transaction_uuid,
-            account_id=account_uuid,
-            category_id=category_uuid,
-            amount=2000.00,
-            date=date.today(),
-        )
+    mock_accessor.append_row.assert_called_once()
 
-        transaction_repo.create(transaction)
+    args = mock_accessor.append_row.call_args[0][0]
 
-        returned_transaction = transaction_repo.get(transaction_uuid)
-
-        assert isinstance(returned_transaction, Transaction)
-        assert returned_transaction == transaction
+    assert args["id"] == str(transaction_uuid)
+    assert args["account_id"] == str(account_uuid)
+    assert args["category_id"] == str(category_uuid)
+    assert args["amount"] == "2000.0"
+    assert args["date"] == date.today().isoformat()
 
 
-def test_transaction_get_by_id():
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        tmp_path = Path(tmpdirname)
+def test_transaction_get_by_id(mock_accessor):
+    account_id = uuid4()
+    transaction_id = uuid4()
+    category_id = uuid4()
 
-        accessor = CsvFileAccessor(
-            file_name="transactions.csv",
-            headers=transaction_headers,
-            base_path=tmp_path,
-        )
+    mock_accessor.read_all.return_value = [
+        {
+            "id": str(transaction_id),
+            "account_id": str(account_id),
+            "category_id": str(category_id),
+            "amount": "2000.0",
+            "date": date.today().isoformat(),
+        }
+    ]
 
-        repo = TransactionRepository(accessor=accessor)
+    repo = TransactionRepository(accessor=mock_accessor)
 
-        account_id = uuid4()
-        transaction_id = uuid4()
-        category_id = uuid4()
+    returned_transaction = repo.get(transaction_id)
 
-        transaction = Transaction(
-            id=transaction_id,
-            account_id=account_id,
-            category_id=category_id,
-            amount=2000.00,
-            date=date.today(),
-        )
-
-        repo.create(transaction)
-
-        file_path = tmp_path / "transactions.csv"
-        assert file_path.exists()
-
-        returned_transaction = repo.get(transaction_id)
-        assert isinstance(returned_transaction, Transaction)
-        assert returned_transaction == transaction
+    assert isinstance(returned_transaction, Transaction)
+    assert returned_transaction.id == transaction_id
 
 
-def test_transaction_get_all():
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        tmp_path = Path(tmpdirname)
+def test_transaction_get_all(mock_accessor):
+    account_id = uuid4()
+    income_transaction_id = uuid4()
+    income_category_id = uuid4()
 
-        accessor = CsvFileAccessor(
-            file_name="transactions.csv",
-            headers=transaction_headers,
-            base_path=tmp_path,
-        )
+    expense_transaction_id = uuid4()
+    expense_category_id = uuid4()
 
-        repo = TransactionRepository(accessor=accessor)
+    mock_accessor.read_all.return_value = [
+        {
+            "id": str(income_transaction_id),
+            "account_id": str(account_id),
+            "category_id": str(income_category_id),
+            "amount": "2000.0",
+            "date": date.today().isoformat(),
+        },
+        {
+            "id": str(expense_transaction_id),
+            "account_id": str(account_id),
+            "category_id": str(expense_category_id),
+            "amount": "2000.0",
+            "date": date.today().isoformat(),
+        },
+    ]
 
-        account_id = uuid4()
-        income_transaction_id = uuid4()
-        income_category_id = uuid4()
+    repo = TransactionRepository(accessor=mock_accessor)
 
-        expense_transaction_id = uuid4()
-        expense_category_id = uuid4()
+    returned_transactions = repo.get_all()
 
-        income = Transaction(
-            id=income_transaction_id,
-            account_id=account_id,
-            category_id=income_category_id,
-            amount=2000.00,
-            date=date.today(),
-        )
-
-        expense = Transaction(
-            id=expense_transaction_id,
-            account_id=account_id,
-            category_id=expense_category_id,
-            amount=2000.00,
-            date=date.today(),
-        )
-
-        repo.create(income)
-        repo.create(expense)
-
-        file_path = tmp_path / "transactions.csv"
-        assert file_path.exists()
-
-        returned_transactions = repo.get_all()
-        assert all(
-            isinstance(transaction, Transaction)
-            for transaction in returned_transactions
-        )
+    assert all(
+        isinstance(transaction, Transaction) for transaction in returned_transactions
+    )
 
 
-def test_transaction_update():
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        tmp_path = Path(tmpdirname)
+def test_transaction_update(mock_accessor):
+    account_id = uuid4()
+    transaction_id = uuid4()
+    category_id = uuid4()
 
-        accessor = CsvFileAccessor(
-            file_name="transactions.csv",
-            headers=transaction_headers,
-            base_path=tmp_path,
-        )
+    mock_accessor.read_all.return_value = [
+        {
+            "id": str(transaction_id),
+            "account_id": str(account_id),
+            "category_id": str(category_id),
+            "amount": "2000.0",
+            "date": date.today().isoformat(),
+        }
+    ]
 
-        repo = TransactionRepository(accessor=accessor)
+    repo = TransactionRepository(accessor=mock_accessor)
 
-        account_id = uuid4()
-        transaction_id = uuid4()
-        category_id = uuid4()
+    updated_transaction = Transaction(
+        id=transaction_id,
+        account_id=account_id,
+        category_id=category_id,
+        amount=1000.00,
+        date=date.today(),
+    )
 
-        transaction = Transaction(
-            id=transaction_id,
-            account_id=account_id,
-            category_id=category_id,
-            amount=2000.00,
-            date=date.today(),
-        )
+    repo.update(updated_transaction)
 
-        repo.create(transaction)
-
-        file_path = tmp_path / "transactions.csv"
-        assert file_path.exists()
-
-        updated_transaction = Transaction(
-            id=transaction_id,
-            account_id=account_id,
-            category_id=category_id,
-            amount=1000.00,
-            date=date.today(),
-        )
-
-        repo.update(updated_transaction)
-        returned_transaction = repo.get(transaction_id)
-        assert isinstance(returned_transaction, Transaction)
-        assert returned_transaction == updated_transaction
+    mock_accessor.write_all.assert_called_once()
 
 
-def test_transaction_delete():
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        tmp_path = Path(tmpdirname)
+def test_transaction_delete(mock_accessor):
+    account_id = uuid4()
+    transaction_id = uuid4()
+    category_id = uuid4()
 
-        accessor = CsvFileAccessor(
-            file_name="transactions.csv",
-            headers=transaction_headers,
-            base_path=tmp_path,
-        )
+    mock_accessor.read_all.return_value = [
+        {
+            "id": str(transaction_id),
+            "account_id": str(account_id),
+            "category_id": str(category_id),
+            "amount": "2000.0",
+            "date": date.today().isoformat(),
+        }
+    ]
 
-        repo = TransactionRepository(accessor=accessor)
+    repo = TransactionRepository(accessor=mock_accessor)
 
-        account_id = uuid4()
-        transaction_id = uuid4()
-        category_id = uuid4()
+    repo.delete(transaction_id)
 
-        transaction = Transaction(
-            id=transaction_id,
-            account_id=account_id,
-            category_id=category_id,
-            amount=2000.00,
-            date=date.today(),
-        )
-
-        repo.create(transaction)
-
-        file_path = tmp_path / "transactions.csv"
-        assert file_path.exists()
-
-        repo.delete(transaction_id)
-        assert repo.get(transaction_id) == None
+    mock_accessor.write_all.assert_called_once()

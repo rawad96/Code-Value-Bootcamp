@@ -17,13 +17,15 @@ class BaseRepository(ABC, Generic[T_ENTITY]):
         return item
 
     def get(self, item_id: str | UUID) -> T_ENTITY | None:
-        for row in self.accessor.read_all():
-            if row["id"] == str(item_id):
+        rows = self.accessor.read_all()
+        for row in rows:
+            if row["id"] == str(item_id) and row["is_deleted"] != "true":
                 return self._row_to_entity(row)
         return None
 
     def get_all(self) -> List[T_ENTITY]:
-        return [self._row_to_entity(row) for row in self.accessor.read_all()]
+        rows = self.accessor.read_all()
+        return [self._row_to_entity(row) for row in rows if row["is_deleted"] != "true"]
 
     def update(self, item: T_ENTITY) -> T_ENTITY:
         rows = self.accessor.read_all()
@@ -38,7 +40,9 @@ class BaseRepository(ABC, Generic[T_ENTITY]):
 
     def delete(self, item_id: str | UUID) -> None:
         rows = self.accessor.read_all()
-        rows = [row for row in rows if row["id"] != str(item_id)]
+        for row in rows:
+            if row["id"] == str(item_id):
+                row["is_deleted"] = "true"
         self.accessor.write_all(rows)
 
     @abstractmethod

@@ -29,8 +29,8 @@ class TransferRepository(BaseRepository[Transfer]):
     def _entity_to_row(self, entity: Transfer) -> dict:
         return {
             "id": str(entity.id),
-            "from_account_id": entity.name,
-            "to_account_id": str(entity.type.value),
+            "from_account_id": str(entity.from_account_id),
+            "to_account_id": str(entity.to_account_id),
             "amount": str(entity.amount),
             "date": entity.date.isoformat(),
             "description": entity.description,
