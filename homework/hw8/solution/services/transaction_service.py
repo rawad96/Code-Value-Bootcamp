@@ -1,5 +1,5 @@
-from repository.transaction_repositort import TransactionRepository
-from models.transaction import Transaction
+from ..repository.transaction_repositort import TransactionRepository
+from ..models.transaction import Transaction
 from uuid import uuid4
 
 
@@ -16,10 +16,12 @@ class TransactionService:
             date=trnsaction.date,
         )
         self.repo.create(new_trnsaction)
+
         return {"Message": "Trnsaction created"}
 
     def get_all_transaction(self) -> list[Transaction]:
         transactions = self.repo.get_all()
+
         return transactions
 
     def get_all_by_account(self, account_id: str) -> list[Transaction]:
@@ -32,8 +34,10 @@ class TransactionService:
 
     def get_by_id(self, transaction_id: str) -> Transaction:
         transaction = self.repo.get(transaction_id)
+
         return transaction
 
     def delete_transaction(self, transaction_id: str) -> dict[str, str]:
         self.repo.delete(transaction_id)
+
         return {"Message": "Transaction deleted"}

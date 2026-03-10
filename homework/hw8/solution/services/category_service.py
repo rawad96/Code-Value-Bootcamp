@@ -1,5 +1,5 @@
-from repository.category_repository import CategoryRepository
-from models.category import Category, CategoryType
+from ..repository.category_repository import CategoryRepository
+from ..models.category import Category, CategoryType
 from uuid import uuid4
 
 
@@ -31,4 +31,5 @@ class CategoryService:
 
     def delete_category(self, category_id: str) -> dict[str, str]:
         self.repo.delete(category_id)
+
         return {"Message": "Category deleted"}

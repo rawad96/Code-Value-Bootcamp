@@ -1,7 +1,7 @@
-from repository.account_repository import AccountRepository
-from models.account import Account
+from ..repository.account_repository import AccountRepository
+from ..models.account import Account
 from .transaction_service import TransactionService
-from models.category import CategoryType
+from ..models.category import CategoryType
 from .category_service import CategoryService
 
 from uuid import uuid4
@@ -10,9 +10,12 @@ from decimal import Decimal
 
 class AccountService:
     def __init__(
-        self, transaction_service: TransactionService, category_service: CategoryService
+        self,
+        repo: AccountRepository,
+        transaction_service: TransactionService,
+        category_service: CategoryService,
     ):
-        self.repo = AccountRepository()
+        self.repo = repo
         self.transaction_service = transaction_service
         self.category_service = category_service
 
