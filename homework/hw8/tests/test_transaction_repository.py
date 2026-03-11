@@ -5,7 +5,7 @@ from datetime import date
 
 from solution.models.transaction import Transaction
 
-from solution.repository.transaction_repositort import TransactionRepository
+from solution.repository.transaction_repository import TransactionRepository
 
 
 @pytest.fixture

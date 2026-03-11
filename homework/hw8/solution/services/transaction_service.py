@@ -1,11 +1,12 @@
-from ..repository.transaction_repositort import TransactionRepository
+from ..repository.transaction_repository import TransactionRepository
 from ..models.transaction import Transaction
-from uuid import uuid4
+from uuid import uuid4, UUID
+from typing import Optional
 
 
 class TransactionService:
-    def __init__(self):
-        self.repo = TransactionRepository()
+    def __init__(self, repo: Optional[TransactionRepository] = None):
+        self.repo = repo or TransactionRepository()
 
     def creat_trnsaction(self, trnsaction: Transaction) -> dict[str, str]:
         new_trnsaction = Transaction(
@@ -24,7 +25,7 @@ class TransactionService:
 
         return transactions
 
-    def get_all_by_account(self, account_id: str) -> list[Transaction]:
+    def get_all_by_account(self, account_id: UUID) -> list[Transaction]:
         all_trnsactions = self.repo.get_all()
         return [
             transaction
@@ -32,12 +33,12 @@ class TransactionService:
             if transaction.account_id == account_id
         ]
 
-    def get_by_id(self, transaction_id: str) -> Transaction:
+    def get_by_id(self, transaction_id: UUID) -> Transaction:
         transaction = self.repo.get(transaction_id)
 
         return transaction
 
-    def delete_transaction(self, transaction_id: str) -> dict[str, str]:
+    def delete_transaction(self, transaction_id: UUID) -> dict[str, str]:
         self.repo.delete(transaction_id)
 
         return {"Message": "Transaction deleted"}

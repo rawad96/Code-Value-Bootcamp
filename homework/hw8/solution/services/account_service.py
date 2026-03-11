@@ -4,20 +4,21 @@ from .transaction_service import TransactionService
 from ..models.category import CategoryType
 from .category_service import CategoryService
 
-from uuid import uuid4
+from uuid import uuid4, UUID
 from decimal import Decimal
+from typing import Optional
 
 
 class AccountService:
     def __init__(
         self,
-        repo: AccountRepository,
-        transaction_service: TransactionService,
-        category_service: CategoryService,
+        repo: Optional[AccountRepository] = None,
+        transaction_service: Optional[TransactionService] = None,
+        category_service: Optional[CategoryService] = None,
     ):
-        self.repo = repo
-        self.transaction_service = transaction_service
-        self.category_service = category_service
+        self.repo = repo or AccountRepository()
+        self.transaction_service = transaction_service or TransactionService()
+        self.category_service = category_service or CategoryService()
 
     def create_account(self, account: Account) -> dict[str, str]:
         new_account = Account(
@@ -32,7 +33,7 @@ class AccountService:
 
         return accounts
 
-    def get_by_id(self, account_id: str) -> Account:
+    def get_by_id(self, account_id: UUID) -> Account:
         account = self.repo.get(account_id)
 
         return account
@@ -42,12 +43,12 @@ class AccountService:
 
         return updated_account
 
-    def delete_account(self, account_id: str) -> dict[str, str]:
+    def delete_account(self, account_id: UUID) -> dict[str, str]:
         self.repo.delete(account_id)
 
         return {"Message": "Account deleted"}
 
-    def calculate_balance(self, account_id: str) -> Decimal:
+    def calculate_balance(self, account_id: UUID) -> Decimal:
         account = self.repo.get(account_id)
         transactions = self.transaction_service.get_all_by_account(account_id)
         balance = Decimal(account.opening_balance)
