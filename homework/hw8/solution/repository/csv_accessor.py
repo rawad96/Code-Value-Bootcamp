@@ -10,7 +10,7 @@ ENCODING = "utf-8"
 
 class CsvFileAccessor:
     def __init__(
-        self, file_name: str, headers: List[str], base_path: str = "../../data"
+        self, file_name: str, headers: List[str], base_path: str = "data"
     ) -> None:
         self.base_path = Path(base_path)
         self.base_path.mkdir(parents=True, exist_ok=True)

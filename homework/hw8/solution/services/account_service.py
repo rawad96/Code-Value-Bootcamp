@@ -6,7 +6,7 @@ from .category_service import CategoryService
 
 from uuid import uuid4, UUID
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, Any
 
 
 class AccountService:
@@ -20,9 +20,12 @@ class AccountService:
         self.transaction_service = transaction_service or TransactionService()
         self.category_service = category_service or CategoryService()
 
-    def create_account(self, account: Account) -> dict[str, str]:
+    def create_account(self, account: dict[str, Any]) -> dict[str, str]:
         new_account = Account(
-            id=uuid4(), name=account.name, opening_balance=account.opening_balance
+            id=uuid4(),
+            name=account["name"],
+            opening_balance=account["opening_balance"],
+            is_deleted="false",
         )
         self.repo.create(new_account)
 
@@ -38,8 +41,14 @@ class AccountService:
 
         return account
 
-    def update_account(self, account: Account) -> Account:
-        updated_account = self.repo.update(account)
+    def update_account(self, account: dict[str, Any]) -> Account:
+        new_account = Account(
+            id=account["id"],
+            name=account["name"],
+            opening_balance=account["opening_balance"],
+            is_deleted="false",
+        )
+        updated_account = self.repo.update(new_account)
 
         return updated_account
 
@@ -69,7 +78,7 @@ class AccountService:
         return balance
 
     def calculate_net_worth(self) -> Decimal:
-        accounts = self.get_all_accounts()
+        accounts = self.repo.get_all()
         net_worth = Decimal(0)
 
         for account in accounts:

@@ -16,7 +16,7 @@ class BaseRepository(ABC, Generic[T_ENTITY]):
         self.accessor.append_row(row)
         return item
 
-    def get(self, item_id: str | UUID) -> T_ENTITY | None:
+    def get(self, item_id: UUID) -> T_ENTITY | None:
         rows = self.accessor.read_all()
         for row in rows:
             if row["id"] == str(item_id) and row["is_deleted"] != "true":

@@ -1,18 +1,19 @@
 from ..repository.category_repository import CategoryRepository
 from ..models.category import Category, CategoryType
 from uuid import uuid4, UUID
-from typing import Optional
+from typing import Optional, Any
 
 
 class CategoryService:
     def __init__(self, repo: Optional[CategoryRepository] = None):
         self.repo = repo or CategoryRepository()
 
-    def creat_category(self, category: Category) -> dict[str, str]:
+    def creat_category(self, category: dict[str, Any]) -> dict[str, str]:
         new_category = Category(
             id=uuid4(),
-            name=category.name,
-            type=category.type,
+            name=category["name"],
+            type=category["type"],
+            is_deleted="false",
         )
         self.repo.create(new_category)
         return {"Message": "Category created"}
@@ -31,8 +32,14 @@ class CategoryService:
             if category.name == name:
                 return category
 
-    def update_category(self, category: Category) -> Category:
-        updated_category = self.repo.update(category)
+    def update_category(self, category: dict[str, Any]) -> Category:
+        new_category = Category(
+            id=["id"],
+            name=category["name"],
+            type=category["type"],
+            is_deleted="false",
+        )
+        updated_category = self.repo.update(new_category)
 
         return updated_category
 

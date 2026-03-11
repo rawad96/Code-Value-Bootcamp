@@ -5,16 +5,17 @@ from constants.headers import transaction_headers
 from uuid import UUID
 from decimal import Decimal
 from datetime import date
+from typing import Optional
 
 
 class TransactionRepository(BaseRepository[Transaction]):
-    def __init__(self, accessor: CsvFileAccessor):
-        if accessor is None:
-            accessor = CsvFileAccessor(
+    def __init__(self, accessor: Optional[CsvFileAccessor] = None):
+        super().__init__(
+            accessor
+            or CsvFileAccessor(
                 file_name="transactions.csv", headers=transaction_headers
             )
-
-        super().__init__(accessor)
+        )
 
     def _row_to_entity(self, row: dict) -> Transaction:
         return Transaction(
@@ -23,6 +24,7 @@ class TransactionRepository(BaseRepository[Transaction]):
             category_id=UUID(row["category_id"]),
             amount=Decimal(row["amount"]),
             date=date.fromisoformat(row["date"]),
+            is_deleted=row["is_deleted"],
         )
 
     def _entity_to_row(self, entity: Transaction) -> dict:
@@ -32,4 +34,5 @@ class TransactionRepository(BaseRepository[Transaction]):
             "category_id": str(entity.category_id),
             "amount": str(entity.amount),
             "date": entity.date.isoformat(),
+            "is_deleted": entity.is_deleted,
         }
