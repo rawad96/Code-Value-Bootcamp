@@ -36,6 +36,5 @@ transfer_headers_request = [
     "from_account_id",
     "to_account_id",
     "amount",
-    "date",
     "description",
 ]
