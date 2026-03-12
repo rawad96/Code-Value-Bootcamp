@@ -31,21 +31,6 @@ class BudgetCLI:
                     continue
             action()
 
-            # try:
-            #     if choice in actions:
-            #         action()
-            #         continue
-            #     elif choice == "7":
-            #         # self._storage.save(self._planner)
-            #         print("Goodbye!")
-            #         break
-            #     else:
-            #         print("Invalid choice.")
-            # except (ValueError, IndexError) as error:
-            #     print(f"Error: {error}")
-
-            # self._storage.save(self._planner)
-
     def _print_menu(self) -> None:
         print("\n===== Budget Planner =====")
         print("1. Add Income")
