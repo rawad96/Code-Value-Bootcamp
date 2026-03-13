@@ -5,10 +5,7 @@ from typing import Optional, Any
 from datetime import datetime
 from constants.headers import CSVHeaders
 
-
-from constants.headers import CSVHeaders
 from solution.models.transaction import Transaction
-from typing import Any
 
 
 def transaction_to_dict(transaction: Transaction) -> dict[str, Any]:

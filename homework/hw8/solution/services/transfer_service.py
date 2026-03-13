@@ -47,6 +47,11 @@ class TransferService:
         transfer_out = self.category_service.get_by_name("Transfer Out")
         transfer_in = self.category_service.get_by_name("Transfer In")
 
+        if transfer_in is None or transfer_out is None:
+            raise ValueError(
+                "Transfer categories not found: transfer_in or transfer_out is None"
+            )
+
         withdraw = {
             CSVHeaders.ACCOUNT_ID.value: transfer[CSVHeaders.FROM_ACCOUNT_ID.value],
             CSVHeaders.CATEGORY_ID.value: transfer_out[CSVHeaders.ID.value],

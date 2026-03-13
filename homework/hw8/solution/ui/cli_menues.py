@@ -21,6 +21,10 @@ BREAK = "0"
 INVALID_CHOICE = "Invalid choice"
 
 
+def print_invalid_choice() -> None:
+    print(INVALID_CHOICE)
+
+
 def accounts_menu() -> None:
     """Runs account actions menu loop."""
     actions = {
@@ -43,12 +47,18 @@ def accounts_menu() -> None:
         print(BACK)
 
         try:
-            choice = MenuOptions(int(input(CHOOSE_OPTION)))
+            menu_choice = MenuOptions(int(input(CHOOSE_OPTION)))
         except ValueError:
-            print(INVALID_CHOICE)
+            print_invalid_choice()
 
-        if choice == MenuOptions.ZERO:
+        if menu_choice == MenuOptions.ZERO:
             break
+
+        try:
+            choice = AccountOptions(menu_choice)
+        except ValueError:
+            print_invalid_choice()
+            continue
 
         action = actions.get(choice)
 
@@ -58,7 +68,7 @@ def accounts_menu() -> None:
             except Exception as error:
                 print(error)
         else:
-            print("Invalid choice")
+            print_invalid_choice()
 
 
 def categories_menu() -> None:
@@ -76,12 +86,18 @@ def categories_menu() -> None:
         print(BACK)
 
         try:
-            choice = MenuOptions(int(input(CHOOSE_OPTION)))
+            menu_choice = MenuOptions(int(input(CHOOSE_OPTION)))
         except ValueError:
-            print(INVALID_CHOICE)
+            print_invalid_choice()
 
-        if choice == MenuOptions.ZERO:
+        if menu_choice == MenuOptions.ZERO:
             break
+
+        try:
+            choice = CategoryOptions(menu_choice)
+        except ValueError:
+            print_invalid_choice()
+            continue
 
         action = actions.get(choice)
 
@@ -92,7 +108,7 @@ def categories_menu() -> None:
                 print(error)
 
         else:
-            print(INVALID_CHOICE)
+            print_invalid_choice()
 
 
 def transactions_menu() -> None:
@@ -111,12 +127,18 @@ def transactions_menu() -> None:
         print(BACK)
 
         try:
-            choice = MenuOptions(int(input(CHOOSE_OPTION)))
+            menu_choice = MenuOptions(int(input(CHOOSE_OPTION)))
         except ValueError:
-            print(INVALID_CHOICE)
+            print_invalid_choice()
 
-        if choice == MenuOptions.ZERO:
+        if menu_choice == MenuOptions.ZERO:
             break
+
+        try:
+            choice = TransactionOptions(menu_choice)
+        except ValueError:
+            print_invalid_choice()
+            continue
 
         action = actions.get(choice)
 
@@ -127,7 +149,7 @@ def transactions_menu() -> None:
                 print(error)
 
         else:
-            print(INVALID_CHOICE)
+            print_invalid_choice()
 
 
 def transfers_menu() -> None:
@@ -146,12 +168,18 @@ def transfers_menu() -> None:
         print(BACK)
 
         try:
-            choice = MenuOptions(int(input(CHOOSE_OPTION)))
+            menu_choice = MenuOptions(int(input(CHOOSE_OPTION)))
         except ValueError:
-            print(INVALID_CHOICE)
+            print_invalid_choice()
 
-        if choice == MenuOptions.ZERO:
+        if menu_choice == MenuOptions.ZERO:
             break
+
+        try:
+            choice = TransferOptions(menu_choice)
+        except ValueError:
+            print_invalid_choice()
+            continue
 
         action = actions.get(choice)
 
@@ -162,7 +190,7 @@ def transfers_menu() -> None:
                 print(error)
 
         else:
-            print(INVALID_CHOICE)
+            print_invalid_choice()
 
 
 def reports_menu() -> None:
@@ -181,12 +209,18 @@ def reports_menu() -> None:
         print(BACK)
 
         try:
-            choice = MenuOptions(int(input(CHOOSE_OPTION)))
+            menu_choice = MenuOptions(int(input(CHOOSE_OPTION)))
         except ValueError:
-            print(INVALID_CHOICE)
+            print_invalid_choice()
 
-        if choice == MenuOptions.ZERO:
+        if menu_choice == MenuOptions.ZERO:
             break
+
+        try:
+            choice = ReportOptions(menu_choice)
+        except ValueError:
+            print_invalid_choice()
+            continue
 
         action = actions.get(choice)
 
@@ -197,7 +231,7 @@ def reports_menu() -> None:
                 print(error)
 
         else:
-            print(INVALID_CHOICE)
+            print_invalid_choice()
 
 
 def data_portability_menu() -> None:
@@ -214,12 +248,18 @@ def data_portability_menu() -> None:
         print(BACK)
 
         try:
-            choice = MenuOptions(int(input(CHOOSE_OPTION)))
+            menu_choice = MenuOptions(int(input(CHOOSE_OPTION)))
         except ValueError:
-            print(INVALID_CHOICE)
+            print_invalid_choice()
 
-        if choice == MenuOptions.ZERO:
+        if menu_choice == MenuOptions.ZERO:
             break
+
+        try:
+            choice = DataPortabilityOptions(menu_choice)
+        except ValueError:
+            print_invalid_choice()
+            continue
 
         action = actions.get(choice)
         if action:
@@ -228,4 +268,4 @@ def data_portability_menu() -> None:
             except Exception as error:
                 print(error)
         else:
-            print(INVALID_CHOICE)
+            print_invalid_choice()

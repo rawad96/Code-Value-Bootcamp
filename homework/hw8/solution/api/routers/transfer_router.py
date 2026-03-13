@@ -15,9 +15,7 @@ IVALID_UUID_FORMAT = "Invalid UUID format"
 TRANSFER_NOT_FOUND = "Transfer not found"
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
-def create_transfer(transfer: dict[str, Any] = Body(...)) -> dict[str, str]:
-    """Creates transfer."""
+def check_fields(transfer: dict[str, Any]) -> None:
     for field in transfer_headers_request:
         if field not in transfer:
             raise HTTPException(
@@ -25,8 +23,19 @@ def create_transfer(transfer: dict[str, Any] = Body(...)) -> dict[str, str]:
                 detail=f"Missing '{field}'",
             )
 
+
+@router.post("/", status_code=status.HTTP_201_CREATED)
+def create_transfer(transfer: dict[str, Any]) -> dict[str, str]:
+    """Creates transfer."""
+    check_fields(transfer)
     try:
         transfer["from_account_id"] = UUID(transfer["from_account_id"])
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=IVALID_UUID_FORMAT,
+        )
+    try:
         transfer["to_account_id"] = UUID(transfer["to_account_id"])
     except ValueError:
         raise HTTPException(

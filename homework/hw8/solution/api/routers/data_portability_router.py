@@ -18,7 +18,7 @@ def export_data() -> FileResponse:
 
 
 @router.post("/import")
-def import_data(file: UploadFile = File(...)) -> dict[str, str]:
+def import_data(file: UploadFile) -> dict[str, str]:
     """Imports data from uploaded zip."""
     path = f"temp_{file.filename}"
 

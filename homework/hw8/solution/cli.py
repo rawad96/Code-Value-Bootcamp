@@ -26,6 +26,7 @@ class BudgetCLI:
                 choice = MenuOptions(int(input(CHOOSE_OPTION)))
             except ValueError:
                 print(INVALID_CHOICE)
+                continue
 
             if choice == MenuOptions.ZERO:
                 print("Goodbye!")
@@ -46,7 +47,7 @@ class BudgetCLI:
         print("6 Data Portability (Import/Export)")
         print("0 Exit")
 
-    def get_action(self, choice: str) -> Any:
+    def get_action(self, choice: MenuOptions) -> Any:
         """Returns menu action for choice or None."""
         actions = {
             MenuOptions.ONE: self.accounts_menu,

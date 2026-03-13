@@ -19,10 +19,11 @@ def choose_from_list(items: list[dict], label_key: str) -> dict | None:
     while True:
         try:
             choice = int(input("Choose: "))
-            if 1 <= choice <= len(items):
-                return items[choice - 1]
         except ValueError as error:
             print(error)
+        else:
+            if 1 <= choice <= len(items):
+                return items[choice - 1]
 
         print("Invalid choice")
 

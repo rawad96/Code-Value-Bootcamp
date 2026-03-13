@@ -2,7 +2,7 @@ from solution.services.account_service import AccountService
 
 from constants.headers import account_headers_request
 
-from fastapi import APIRouter, Body, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from uuid import UUID
 from decimal import Decimal
 from typing import Any
@@ -16,7 +16,7 @@ ACCOUNT_NOT_FOUND = "Account not found"
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_account(account: dict[str, Any] = Body(...)) -> dict[str, str]:
+def create_account(account: dict[str, Any]) -> dict[str, str]:
     """Creates account."""
     for field in account_headers_request:
         if field not in account:

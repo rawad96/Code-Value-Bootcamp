@@ -107,7 +107,9 @@ def test_update_category(mock_accessor: Mock) -> None:
     repo.update(updated_category)
 
     mock_accessor.write_all.assert_called_once()
-    args = mock_accessor.write_all.call_args[0][0][0]
+    call_args = mock_accessor.write_all.call_args
+    rows = call_args[0][0]
+    args = rows[0]
     assert args[CSVHeaders.NAME.value] == "New Name"
 
 
@@ -127,5 +129,7 @@ def test_delete_category(mock_accessor: Mock) -> None:
     repo.delete(category_id)
 
     mock_accessor.write_all.assert_called_once()
-    args = mock_accessor.write_all.call_args[0][0][0]
+    call_args = mock_accessor.write_all.call_args
+    rows = call_args[0][0]
+    args = rows[0]
     assert args[CSVHeaders.IS_DELETED.value] == TRUE

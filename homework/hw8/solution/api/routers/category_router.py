@@ -15,7 +15,7 @@ CATEGORY_NOT_FOUND = "Category not found"
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_category(category: dict[str, Any] = Body(...)) -> dict[str, str]:
+def create_category(category: dict[str, Any]) -> dict[str, str]:
     """Creates category."""
     for field in category_headers_request:
         if field not in category:
@@ -65,7 +65,7 @@ def get_category_by_name(name: str) -> dict[str, Any]:
 
 
 @router.put("/")
-def update_category(category: dict[str, Any] = Body(...)) -> dict[str, Any]:
+def update_category(category: dict[str, Any]) -> dict[str, Any]:
     if "id" not in category:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,

@@ -16,7 +16,7 @@ service = TransactionService()
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_transaction(transaction: dict[str, Any] = Body(...)) -> dict[str, str]:
+def create_transaction(transaction: dict[str, Any]) -> dict[str, str]:
     """Creates transaction."""
     for field in transaction_headers_request:
         if field not in transaction:
@@ -26,6 +26,12 @@ def create_transaction(transaction: dict[str, Any] = Body(...)) -> dict[str, str
             )
     try:
         transaction["account_id"] = UUID(transaction["account_id"])
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=IVALID_UUID_FORMAT,
+        )
+    try:
         transaction["category_id"] = UUID(transaction["category_id"])
     except ValueError:
         raise HTTPException(
