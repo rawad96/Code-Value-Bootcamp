@@ -2,7 +2,7 @@ from solution.api.api_client import get, post, delete
 from solution.ui.ui_utils import choose_account, choose_transfer
 
 
-def view_transfers():
+def view_transfers() -> None:
     transfers = get("/transfers/")
 
     for transfer in transfers:
@@ -12,7 +12,7 @@ def view_transfers():
         )
 
 
-def add_transfer():
+def add_transfer() -> None:
     print("From account")
     from_account = choose_account()
 
@@ -35,7 +35,7 @@ def add_transfer():
     print("Transfer created")
 
 
-def delete_transfer():
+def delete_transfer() -> None:
     transfer_id = choose_transfer()
     delete(f"/transfers/{transfer_id}")
 

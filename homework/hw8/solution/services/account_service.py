@@ -8,6 +8,8 @@ from uuid import uuid4, UUID
 from decimal import Decimal
 from typing import Optional, Any
 
+CATEGORY_ID = "category_id"
+
 
 def account_to_dict(account: Account) -> dict[str, Any]:
     return {
@@ -73,11 +75,11 @@ class AccountService:
         category_cache = {}
 
         for transaction in transactions:
-            if transaction["category_id"] not in category_cache:
-                category_cache[transaction["category_id"]] = (
-                    self.category_service.get_by_id(transaction["category_id"])
+            if transaction[CATEGORY_ID] not in category_cache:
+                category_cache[transaction[CATEGORY_ID]] = (
+                    self.category_service.get_by_id(transaction[CATEGORY_ID])
                 )
-            category_type = category_cache[transaction["category_id"]]
+            category_type = category_cache[transaction[CATEGORY_ID]]
 
             if category_type["type"] == CategoryType.INCOME.value:
                 balance += Decimal(transaction["amount"])
@@ -88,9 +90,8 @@ class AccountService:
 
     def calculate_net_worth(self) -> Decimal:
         accounts = self.repo.get_all()
-        net_worth = Decimal(0)
-
-        for account in accounts:
-            net_worth += self.calculate_balance(account.id)
+        net_worth = sum(
+            (self.calculate_balance(account.id) for account in accounts), Decimal(0)
+        )
 
         return net_worth

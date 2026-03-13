@@ -7,15 +7,28 @@ from uuid import uuid4, UUID
 from typing import Optional, Any
 from datetime import datetime
 
+ID = "id"
+NAME = "name"
+AMOUNT = "amount"
+IS_DELETED = "is_deleted"
+OPENING_BALANCE = "opening_balance"
+ACCOUNT_ID = "account_id"
+TYPE = "type"
+FROM_ACCOUNT_ID = "from_account_id"
+TO_ACCOUNT_ID = "to_account_id"
+DATE = "date"
+DESCRIPTION = "description"
+CATEGORY_ID = "category_id"
+
 
 def transfer_to_dict(transfer: Transfer) -> dict[str, Any]:
     return {
-        "id": str(transfer.id),
-        "from_account_id": str(transfer.from_account_id),
-        "to_account_id": str(transfer.to_account_id),
-        "amount": str(transfer.amount),
-        "date": transfer.date.isoformat(),
-        "description": transfer.description,
+        ID: str(transfer.id),
+        FROM_ACCOUNT_ID: str(transfer.from_account_id),
+        TO_ACCOUNT_ID: str(transfer.to_account_id),
+        AMOUNT: str(transfer.amount),
+        DATE: transfer.date.isoformat(),
+        DESCRIPTION: transfer.description,
     }
 
 
@@ -33,11 +46,11 @@ class TransferService:
     def creat_transfer(self, transfer: dict[str, Any]) -> dict[str, str]:
         new_transfer = Transfer(
             id=uuid4(),
-            from_account_id=transfer["from_account_id"],
-            to_account_id=transfer["to_account_id"],
-            amount=transfer["amount"],
+            from_account_id=transfer[FROM_ACCOUNT_ID],
+            to_account_id=transfer[TO_ACCOUNT_ID],
+            amount=transfer[AMOUNT],
             date=datetime.now().date(),
-            description=transfer["description"],
+            description=transfer[DESCRIPTION],
             is_deleted="false",
         )
         self.repo.create(new_transfer)
@@ -46,15 +59,15 @@ class TransferService:
         transfer_in = self.category_service.get_by_name("Transfer In")
 
         withdraw = {
-            "account_id": transfer["from_account_id"],
-            "category_id": transfer_out["id"],
-            "amount": transfer["amount"],
+            ACCOUNT_ID: transfer[FROM_ACCOUNT_ID],
+            CATEGORY_ID: transfer_out[ID],
+            AMOUNT: transfer[AMOUNT],
         }
 
         deposit = {
-            "account_id": transfer["to_account_id"],
-            "category_id": transfer_in["id"],
-            "amount": transfer["amount"],
+            ACCOUNT_ID: transfer[TO_ACCOUNT_ID],
+            CATEGORY_ID: transfer_in[ID],
+            AMOUNT: transfer[AMOUNT],
         }
 
         self.transaction_service.creat_trnsaction(withdraw)

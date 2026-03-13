@@ -2,14 +2,14 @@ from solution.api.api_client import get, post, delete, put
 from solution.ui.ui_utils import choose_account
 
 
-def view_accounts():
+def view_accounts() -> None:
     accounts = get("/accounts/")
 
     for account in accounts:
         print(f"\n{account['name']} | Opening balance: {account['opening_balance']}")
 
 
-def add_account():
+def add_account() -> None:
     name = input("Account name: ")
     balance = input("Opening balance: ")
     post("/accounts/", {"name": name, "opening_balance": balance})
@@ -17,7 +17,7 @@ def add_account():
     print("\nAccount created")
 
 
-def edit_account():
+def edit_account() -> None:
     account = choose_account()
     new_name = input("New name: ")
     put(
@@ -32,21 +32,21 @@ def edit_account():
     print("\nAccount updated")
 
 
-def delete_account():
+def delete_account() -> None:
     account = choose_account()
     delete(f"/accounts/{account["account_id"]}")
 
     print("\nAccount deleted")
 
 
-def view_account_balance():
+def view_account_balance() -> None:
     account = choose_account()
     balance = get(f"\n/accounts/{account["account_id"]}/balance")
 
     print(f"Balance: {balance}")
 
 
-def view_net_worth():
+def view_net_worth() -> None:
     net = get("/accounts/get/net/worth")
 
     print(f"\nNet Worth: {net}")

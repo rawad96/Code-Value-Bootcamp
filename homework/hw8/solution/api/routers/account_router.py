@@ -11,6 +11,9 @@ router = APIRouter(prefix="/accounts", tags=["Accounts"])
 
 service = AccountService()
 
+IVALID_UUID_FORMAT = "Invalid UUID format"
+ACCOUNT_NOT_FOUND = "Account not found"
+
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_account(account: dict[str, Any] = Body(...)) -> dict[str, str]:
@@ -41,12 +44,12 @@ def get_account(account_id: str) -> dict[str, Any]:
         account = service.get_by_id(UUID(account_id))
     except ValueError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid UUID format"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=IVALID_UUID_FORMAT
         )
 
     if account is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Account not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=ACCOUNT_NOT_FOUND
         )
     return account
 
@@ -62,13 +65,13 @@ def update_account(account: dict[str, Any]) -> dict[str, Any]:
         account["id"] = UUID(account["id"])
     except ValueError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid UUID format"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=IVALID_UUID_FORMAT
         )
 
     updated_account = service.update_account(account)
     if updated_account is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Account not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=ACCOUNT_NOT_FOUND
         )
     return updated_account
 
@@ -79,13 +82,13 @@ def delete_account(account_id: str) -> dict[str, str]:
         id = UUID(account_id)
     except ValueError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid UUID format"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=IVALID_UUID_FORMAT
         )
 
     account = service.get_by_id(id)
     if account is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Account not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=ACCOUNT_NOT_FOUND
         )
     return service.delete_account(id)
 
@@ -96,13 +99,13 @@ def calculate_balance(account_id: str) -> Decimal:
         id = UUID(account_id)
     except ValueError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid UUID format"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=IVALID_UUID_FORMAT
         )
 
     account = service.get_by_id(id)
     if account is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Account not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=ACCOUNT_NOT_FOUND
         )
     return service.calculate_balance(id)
 

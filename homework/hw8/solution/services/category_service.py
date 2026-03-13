@@ -41,7 +41,8 @@ class CategoryService:
         categories = self.repo.get_all()
         for category in categories:
             if category.name == name:
-                return category_to_dict(category)
+                returned_category = category_to_dict(category)
+        return returned_category
 
     def update_category(self, category: dict[str, Any]) -> dict[str, Any]:
         new_category = Category(

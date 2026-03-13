@@ -6,6 +6,9 @@ from fastapi import APIRouter, HTTPException, status, Body
 from uuid import UUID
 from typing import Any
 
+IVALID_UUID_FORMAT = "Invalid UUID format"
+TRANSACTION_NOT_FOUND = "Transaction not found"
+
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
@@ -21,14 +24,13 @@ def create_transaction(transaction: dict[str, Any] = Body(...)) -> dict[str, str
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Missing '{field}'",
             )
-
     try:
         transaction["account_id"] = UUID(transaction["account_id"])
         transaction["category_id"] = UUID(transaction["category_id"])
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid UUID format",
+            detail=IVALID_UUID_FORMAT,
         )
 
     return service.creat_trnsaction(transaction)
@@ -47,13 +49,13 @@ def get_transaction(transaction_id: str) -> dict[str, Any]:
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid UUID format",
+            detail=IVALID_UUID_FORMAT,
         )
 
     if transaction is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Transaction not found",
+            detail=TRANSACTION_NOT_FOUND,
         )
 
     return transaction
@@ -67,7 +69,7 @@ def get_transactions_by_account(account_id: str) -> list[dict[str, Any]]:
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid UUID format",
+            detail=IVALID_UUID_FORMAT,
         )
 
     return transactions
@@ -81,13 +83,13 @@ def delete_transaction(transaction_id: str) -> dict[str, str]:
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid UUID format",
+            detail=IVALID_UUID_FORMAT,
         )
 
     if transaction is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Transaction not found",
+            detail=TRANSACTION_NOT_FOUND,
         )
 
     return service.delete_transaction(transaction_id)

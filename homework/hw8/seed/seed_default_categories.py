@@ -1,18 +1,21 @@
 from solution.models.category import CategoryType
 from solution.services.category_service import CategoryService
 
+NAME = "name"
+TYPE = "type"
 
-def seed_categories():
+
+def seed_categories() -> None:
     service = CategoryService()
     default_categories = [
-        {"name": "Salary", "type": CategoryType.INCOME},
-        {"name": "Freelance", "type": CategoryType.INCOME},
-        {"name": "Rent", "type": CategoryType.EXPENSE},
-        {"name": "Groceries", "type": CategoryType.EXPENSE},
-        {"name": "Utilities", "type": CategoryType.EXPENSE},
-        {"name": "Entertainment", "type": CategoryType.EXPENSE},
-        {"name": "Transfer In", "type": CategoryType.INCOME},
-        {"name": "Transfer Out", "type": CategoryType.EXPENSE},
+        {NAME: "Salary", TYPE: CategoryType.INCOME},
+        {NAME: "Freelance", TYPE: CategoryType.INCOME},
+        {NAME: "Rent", TYPE: CategoryType.EXPENSE},
+        {NAME: "Groceries", TYPE: CategoryType.EXPENSE},
+        {NAME: "Utilities", TYPE: CategoryType.EXPENSE},
+        {NAME: "Entertainment", TYPE: CategoryType.EXPENSE},
+        {NAME: "Transfer In", TYPE: CategoryType.INCOME},
+        {NAME: "Transfer Out", TYPE: CategoryType.EXPENSE},
     ]
 
     existing_categories = service.get_all_categories()

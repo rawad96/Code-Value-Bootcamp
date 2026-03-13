@@ -1,40 +1,53 @@
-account_headers = ["id", "name", "opening_balance", "is_deleted"]
+ID = "id"
+NAME = "name"
+AMOUNT = "amount"
+IS_DELETED = "is_deleted"
+OPENING_BALANCE = "opening_balance"
+ACCOUNT_ID = "account_id"
+TYPE = "type"
+FROM_ACCOUNT_ID = "from_account_id"
+TO_ACCOUNT_ID = "to_account_id"
+DATE = "date"
+DESCRIPTION = "description"
+CATEGORY_ID = "category_id"
 
-category_headers = ["id", "name", "type", "is_deleted"]
+account_headers = [ID, NAME, OPENING_BALANCE, IS_DELETED]
+
+category_headers = [ID, NAME, TYPE, IS_DELETED]
 
 transaction_headers = [
-    "id",
-    "account_id",
-    "category_id",
-    "amount",
-    "date",
-    "is_deleted",
+    ID,
+    ACCOUNT_ID,
+    CATEGORY_ID,
+    AMOUNT,
+    DATE,
+    IS_DELETED,
 ]
 
 transfer_headers = [
-    "id",
-    "from_account_id",
-    "to_account_id",
-    "amount",
-    "date",
-    "description",
-    "is_deleted",
+    ID,
+    FROM_ACCOUNT_ID,
+    TO_ACCOUNT_ID,
+    AMOUNT,
+    DATE,
+    DESCRIPTION,
+    IS_DELETED,
 ]
 
 
-account_headers_request = ["name", "opening_balance"]
+account_headers_request = [NAME, OPENING_BALANCE]
 
-category_headers_request = ["name", "type"]
+category_headers_request = [NAME, TYPE]
 
 transaction_headers_request = [
-    "account_id",
-    "category_id",
-    "amount",
+    ACCOUNT_ID,
+    CATEGORY_ID,
+    AMOUNT,
 ]
 
 transfer_headers_request = [
-    "from_account_id",
-    "to_account_id",
-    "amount",
-    "description",
+    FROM_ACCOUNT_ID,
+    TO_ACCOUNT_ID,
+    AMOUNT,
+    DESCRIPTION,
 ]

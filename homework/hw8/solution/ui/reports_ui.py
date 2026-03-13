@@ -1,34 +1,31 @@
 from solution.api.api_client import get
 
 
-def monthly_summary():
+def monthly_summary() -> None:
+    month = int(input("Month: "))
+    year = int(input("Year: "))
 
-    month = input("Month: ")
-    year = input("Year: ")
-
-    summary = get(f"/reports/monthly_summary?month={month}&year={year}")
+    summary = get(f"/reports/monthly_summary?year={year}&month={month}")
 
     print("Income:", summary["total_income"])
     print("Expenses:", summary["total_expenses"])
     print("Cash Flow:", summary["net_cash_flow"])
 
 
-def category_breakdown():
+def category_breakdown() -> None:
+    month = int(input("Month: "))
+    year = int(input("Year: "))
 
-    month = input("Month: ")
-    year = input("Year: ")
-
-    data = get(f"/reports/category_breakdown?month={month}&year={year}")
+    data = get(f"/reports/spending_by_category?year={year}&month={month}")
 
     for item in data:
-        print(f"{item['category']} : {item['amount']}")
+        print(f"{item['category']} : {item['total']}")
 
 
-def dashboard():
+def dashboard() -> None:
+    dashboard = get("/reports/dashboard")
 
-    dash = get("/dashboard")
-
-    print("Net Worth:", dash["net_worth"])
-    print("Income:", dash["income"])
-    print("Expenses:", dash["expenses"])
-    print("Cash Flow:", dash["cash_flow"])
+    print("Net Worth:", dashboard["net_worth"])
+    print("Income:", dashboard["monthly_income"])
+    print("Expenses:", dashboard["monthly_expenses"])
+    print("Cash Flow:", dashboard["monthly_net_cash_flow"])

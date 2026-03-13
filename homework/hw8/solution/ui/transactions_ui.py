@@ -2,7 +2,7 @@ from solution.api.api_client import get, post, delete
 from solution.ui.ui_utils import choose_account, choose_category, choose_transaction
 
 
-def view_transactions():
+def view_transactions() -> None:
     transactions = get("/transactions/")
 
     for transaction in transactions:
@@ -14,7 +14,7 @@ def view_transactions():
         )
 
 
-def add_transaction():
+def add_transaction() -> None:
     print("Choose account")
     account = choose_account()
 
@@ -35,7 +35,7 @@ def add_transaction():
     print("Transaction added")
 
 
-def delete_transaction():
+def delete_transaction() -> None:
     transaction_id = choose_transaction()
     delete(f"/transactions/{transaction_id}")
 

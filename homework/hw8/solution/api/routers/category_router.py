@@ -10,6 +10,9 @@ router = APIRouter(prefix="/categories", tags=["Categories"])
 
 service = CategoryService()
 
+IVALID_UUID_FORMAT = "Invalid UUID format"
+CATEGORY_NOT_FOUND = "Category not found"
+
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_category(category: dict[str, Any] = Body(...)) -> dict[str, str]:
@@ -39,11 +42,11 @@ def get_category(category_id: str) -> dict[str, Any]:
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid UUID format",
+            detail=IVALID_UUID_FORMAT,
         )
     if category is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=CATEGORY_NOT_FOUND
         )
     return category
 
@@ -53,7 +56,7 @@ def get_category_by_name(name: str) -> dict[str, Any]:
     category = service.get_by_name(name)
     if category is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=CATEGORY_NOT_FOUND
         )
     return category
 
@@ -69,13 +72,13 @@ def update_category(category: dict[str, Any] = Body(...)) -> dict[str, Any]:
         category["id"] = UUID(category["id"])
     except ValueError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid UUID format"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=IVALID_UUID_FORMAT
         )
 
     updated_category = service.update_category(category)
     if updated_category is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=CATEGORY_NOT_FOUND
         )
     return updated_category
 
@@ -87,10 +90,10 @@ def delete_category(category_id: str) -> dict[str, str]:
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="Invalid UUID format",
+            detail=IVALID_UUID_FORMAT,
         )
     except Exception:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Category not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=CATEGORY_NOT_FOUND
         )
     return {"Message": "Category deleted"}
