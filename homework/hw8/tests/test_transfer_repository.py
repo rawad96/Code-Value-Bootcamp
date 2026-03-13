@@ -1,19 +1,27 @@
 from uuid import uuid4
 from datetime import date
+from decimal import Decimal
 from unittest.mock import Mock
+
 import pytest
 
+from constants.headers import CSVHeaders
 from solution.models.transfer import Transfer
-
 from solution.repository.transfer_repository import TransferRepository
 
 
+TRUE = "true"
+FALSE = "false"
+
+
 @pytest.fixture
-def mock_accessor():
+def mock_accessor() -> Mock:
+    """Returns mock accessor."""
     return Mock()
 
 
-def test_creat_transfer(mock_accessor):
+def test_create_transfer(mock_accessor: Mock) -> None:
+    """Checks create writes one row with entity data."""
     transfer_repo = TransferRepository(accessor=mock_accessor)
 
     transfer_id = uuid4()
@@ -24,9 +32,10 @@ def test_creat_transfer(mock_accessor):
         id=transfer_id,
         from_account_id=from_account_id,
         to_account_id=to_account_id,
-        amount=2000.00,
+        amount=Decimal("2000.00"),
         date=date.today(),
         description="Food",
+        is_deleted=FALSE,
     )
 
     transfer_repo.create(transfer)
@@ -35,27 +44,29 @@ def test_creat_transfer(mock_accessor):
 
     args = mock_accessor.append_row.call_args[0][0]
 
-    assert args["id"] == str(transfer_id)
-    assert args["from_account_id"] == str(from_account_id)
-    assert args["to_account_id"] == str(to_account_id)
-    assert args["amount"] == "2000.0"
-    assert args["date"] == date.today().isoformat()
-    assert args["description"] == "Food"
+    assert args[CSVHeaders.ID.value] == str(transfer_id)
+    assert args[CSVHeaders.FROM_ACCOUNT_ID.value] == str(from_account_id)
+    assert args[CSVHeaders.TO_ACCOUNT_ID.value] == str(to_account_id)
+    assert args[CSVHeaders.AMOUNT.value] == "2000.00"
+    assert args[CSVHeaders.DATE.value] == date.today().isoformat()
+    assert args[CSVHeaders.DESCRIPTION.value] == "Food"
+    assert args[CSVHeaders.IS_DELETED.value] == FALSE
 
 
-def test_transfer_get_by_id(mock_accessor):
+def test_transfer_get_by_id(mock_accessor: Mock) -> None:
     transfer_id = uuid4()
     from_account_id = uuid4()
     to_account_id = uuid4()
 
     mock_accessor.read_all.return_value = [
         {
-            "id": str(transfer_id),
-            "from_account_id": str(from_account_id),
-            "to_account_id": str(to_account_id),
-            "amount": "2000.0",
-            "date": date.today().isoformat(),
-            "description": "Food",
+            CSVHeaders.ID.value: str(transfer_id),
+            CSVHeaders.FROM_ACCOUNT_ID.value: str(from_account_id),
+            CSVHeaders.TO_ACCOUNT_ID.value: str(to_account_id),
+            CSVHeaders.AMOUNT.value: "2000.00",
+            CSVHeaders.DATE.value: date.today().isoformat(),
+            CSVHeaders.DESCRIPTION.value: "Food",
+            CSVHeaders.IS_DELETED.value: FALSE,
         }
     ]
 
@@ -67,7 +78,8 @@ def test_transfer_get_by_id(mock_accessor):
     assert returned_transfer.id == transfer_id
 
 
-def test_transfer_get_all(mock_accessor):
+def test_transfer_get_all(mock_accessor: Mock) -> None:
+    """Checks get_all returns all non-deleted transfers."""
     transfer_id1 = uuid4()
     transfer_id2 = uuid4()
 
@@ -76,20 +88,22 @@ def test_transfer_get_all(mock_accessor):
 
     mock_accessor.read_all.return_value = [
         {
-            "id": str(transfer_id1),
-            "from_account_id": str(from_account_id),
-            "to_account_id": str(to_account_id),
-            "amount": "2000.0",
-            "date": date.today().isoformat(),
-            "description": "Food",
+            CSVHeaders.ID.value: str(transfer_id1),
+            CSVHeaders.FROM_ACCOUNT_ID.value: str(from_account_id),
+            CSVHeaders.TO_ACCOUNT_ID.value: str(to_account_id),
+            CSVHeaders.AMOUNT.value: "2000.00",
+            CSVHeaders.DATE.value: date.today().isoformat(),
+            CSVHeaders.DESCRIPTION.value: "Food",
+            CSVHeaders.IS_DELETED.value: FALSE,
         },
         {
-            "id": str(transfer_id2),
-            "from_account_id": str(from_account_id),
-            "to_account_id": str(to_account_id),
-            "amount": "1000.0",
-            "date": date.today().isoformat(),
-            "description": "shopping",
+            CSVHeaders.ID.value: str(transfer_id2),
+            CSVHeaders.FROM_ACCOUNT_ID.value: str(from_account_id),
+            CSVHeaders.TO_ACCOUNT_ID.value: str(to_account_id),
+            CSVHeaders.AMOUNT.value: "1000.00",
+            CSVHeaders.DATE.value: date.today().isoformat(),
+            CSVHeaders.DESCRIPTION.value: "shopping",
+            CSVHeaders.IS_DELETED.value: FALSE,
         },
     ]
 
@@ -101,19 +115,20 @@ def test_transfer_get_all(mock_accessor):
     assert all(isinstance(transfer, Transfer) for transfer in returned_transfers)
 
 
-def test_transfer_update(mock_accessor):
+def test_transfer_update(mock_accessor: Mock) -> None:
     transfer_id = uuid4()
     from_account_id = uuid4()
     to_account_id = uuid4()
 
     mock_accessor.read_all.return_value = [
         {
-            "id": str(transfer_id),
-            "from_account_id": str(from_account_id),
-            "to_account_id": str(to_account_id),
-            "amount": "2000.0",
-            "date": date.today().isoformat(),
-            "description": "Food",
+            CSVHeaders.ID.value: str(transfer_id),
+            CSVHeaders.FROM_ACCOUNT_ID.value: str(from_account_id),
+            CSVHeaders.TO_ACCOUNT_ID.value: str(to_account_id),
+            CSVHeaders.AMOUNT.value: "2000.00",
+            CSVHeaders.DATE.value: date.today().isoformat(),
+            CSVHeaders.DESCRIPTION.value: "Food",
+            CSVHeaders.IS_DELETED.value: FALSE,
         }
     ]
 
@@ -123,9 +138,10 @@ def test_transfer_update(mock_accessor):
         id=transfer_id,
         from_account_id=from_account_id,
         to_account_id=to_account_id,
-        amount=1000.00,
+        amount=Decimal("1000.00"),
         date=date.today(),
         description="Food",
+        is_deleted=FALSE,
     )
 
     repo.update(updated_transfer)
@@ -133,19 +149,21 @@ def test_transfer_update(mock_accessor):
     mock_accessor.write_all.assert_called_once()
 
 
-def test_transfer_delete(mock_accessor):
+def test_transfer_delete(mock_accessor: Mock) -> None:
+    """Checks delete marks row as deleted."""
     transfer_id = uuid4()
     from_account_id = uuid4()
     to_account_id = uuid4()
 
     mock_accessor.read_all.return_value = [
         {
-            "id": str(transfer_id),
-            "from_account_id": str(from_account_id),
-            "to_account_id": str(to_account_id),
-            "amount": "2000.0",
-            "date": date.today().isoformat(),
-            "description": "Food",
+            CSVHeaders.ID.value: str(transfer_id),
+            CSVHeaders.FROM_ACCOUNT_ID.value: str(from_account_id),
+            CSVHeaders.TO_ACCOUNT_ID.value: str(to_account_id),
+            CSVHeaders.AMOUNT.value: "2000.00",
+            CSVHeaders.DATE.value: date.today().isoformat(),
+            CSVHeaders.DESCRIPTION.value: "Food",
+            CSVHeaders.IS_DELETED.value: FALSE,
         }
     ]
 

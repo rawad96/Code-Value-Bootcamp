@@ -17,7 +17,7 @@ service = TransactionService()
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_transaction(transaction: dict[str, Any] = Body(...)) -> dict[str, str]:
-
+    """Creates transaction."""
     for field in transaction_headers_request:
         if field not in transaction:
             raise HTTPException(
@@ -38,12 +38,13 @@ def create_transaction(transaction: dict[str, Any] = Body(...)) -> dict[str, str
 
 @router.get("/")
 def get_all_transactions() -> list[dict[str, Any]]:
+    """Returns all transactions."""
     return service.get_all_transaction()
 
 
 @router.get("/{transaction_id}")
 def get_transaction(transaction_id: str) -> dict[str, Any]:
-
+    """Returns transaction by id."""
     try:
         transaction = service.get_by_id(UUID(transaction_id))
     except ValueError:
@@ -63,7 +64,7 @@ def get_transaction(transaction_id: str) -> dict[str, Any]:
 
 @router.get("/account/{account_id}")
 def get_transactions_by_account(account_id: str) -> list[dict[str, Any]]:
-
+    """Returns all transactions for account."""
     try:
         transactions = service.get_all_by_account(UUID(account_id))
     except ValueError:
@@ -77,7 +78,7 @@ def get_transactions_by_account(account_id: str) -> list[dict[str, Any]]:
 
 @router.delete("/{transaction_id}")
 def delete_transaction(transaction_id: str) -> dict[str, str]:
-
+    """Deletes transaction."""
     try:
         transaction = service.get_by_id(UUID(transaction_id))
     except ValueError:
@@ -92,4 +93,4 @@ def delete_transaction(transaction_id: str) -> dict[str, str]:
             detail=TRANSACTION_NOT_FOUND,
         )
 
-    return service.delete_transaction(transaction_id)
+    return service.delete_transaction(UUID(transaction_id))

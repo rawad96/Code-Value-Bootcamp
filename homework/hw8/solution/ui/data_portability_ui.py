@@ -6,7 +6,7 @@ CHUNK_SIZE = 8192
 
 
 def export_data() -> None:
-    """Export all data to a ZIP file"""
+    """Exports all data to zip file."""
     try:
         response = requests.get(f"{API_URL}/data/export", stream=True)
         response.raise_for_status()
@@ -20,7 +20,7 @@ def export_data() -> None:
 
 
 def import_data() -> None:
-    """Import data from a ZIP file"""
+    """Imports data from zip file."""
     path = input("Enter path to ZIP file: ").strip()
     try:
         with open(path, "rb") as file:

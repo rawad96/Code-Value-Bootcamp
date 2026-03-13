@@ -6,29 +6,18 @@ from ..models.transfer import Transfer
 from uuid import uuid4, UUID
 from typing import Optional, Any
 from datetime import datetime
-
-ID = "id"
-NAME = "name"
-AMOUNT = "amount"
-IS_DELETED = "is_deleted"
-OPENING_BALANCE = "opening_balance"
-ACCOUNT_ID = "account_id"
-TYPE = "type"
-FROM_ACCOUNT_ID = "from_account_id"
-TO_ACCOUNT_ID = "to_account_id"
-DATE = "date"
-DESCRIPTION = "description"
-CATEGORY_ID = "category_id"
+from constants.headers import CSVHeaders
 
 
 def transfer_to_dict(transfer: Transfer) -> dict[str, Any]:
+    """Returns transfer as dict."""
     return {
-        ID: str(transfer.id),
-        FROM_ACCOUNT_ID: str(transfer.from_account_id),
-        TO_ACCOUNT_ID: str(transfer.to_account_id),
-        AMOUNT: str(transfer.amount),
-        DATE: transfer.date.isoformat(),
-        DESCRIPTION: transfer.description,
+        CSVHeaders.ID.value: str(transfer.id),
+        CSVHeaders.FROM_ACCOUNT_ID.value: str(transfer.from_account_id),
+        CSVHeaders.TO_ACCOUNT_ID.value: str(transfer.to_account_id),
+        CSVHeaders.AMOUNT.value: str(transfer.amount),
+        CSVHeaders.DATE.value: transfer.date.isoformat(),
+        CSVHeaders.DESCRIPTION.value: transfer.description,
     }
 
 
@@ -46,11 +35,11 @@ class TransferService:
     def creat_transfer(self, transfer: dict[str, Any]) -> dict[str, str]:
         new_transfer = Transfer(
             id=uuid4(),
-            from_account_id=transfer[FROM_ACCOUNT_ID],
-            to_account_id=transfer[TO_ACCOUNT_ID],
-            amount=transfer[AMOUNT],
+            from_account_id=transfer[CSVHeaders.FROM_ACCOUNT_ID.value],
+            to_account_id=transfer[CSVHeaders.TO_ACCOUNT_ID.value],
+            amount=transfer[CSVHeaders.AMOUNT.value],
             date=datetime.now().date(),
-            description=transfer[DESCRIPTION],
+            description=transfer[CSVHeaders.DESCRIPTION.value],
             is_deleted="false",
         )
         self.repo.create(new_transfer)
@@ -59,15 +48,15 @@ class TransferService:
         transfer_in = self.category_service.get_by_name("Transfer In")
 
         withdraw = {
-            ACCOUNT_ID: transfer[FROM_ACCOUNT_ID],
-            CATEGORY_ID: transfer_out[ID],
-            AMOUNT: transfer[AMOUNT],
+            CSVHeaders.ACCOUNT_ID.value: transfer[CSVHeaders.FROM_ACCOUNT_ID.value],
+            CSVHeaders.CATEGORY_ID.value: transfer_out[CSVHeaders.ID.value],
+            CSVHeaders.AMOUNT.value: transfer[CSVHeaders.AMOUNT.value],
         }
 
         deposit = {
-            ACCOUNT_ID: transfer[TO_ACCOUNT_ID],
-            CATEGORY_ID: transfer_in[ID],
-            AMOUNT: transfer[AMOUNT],
+            CSVHeaders.ACCOUNT_ID.value: transfer[CSVHeaders.TO_ACCOUNT_ID.value],
+            CSVHeaders.CATEGORY_ID.value: transfer_in[CSVHeaders.ID.value],
+            CSVHeaders.AMOUNT.value: transfer[CSVHeaders.AMOUNT.value],
         }
 
         self.transaction_service.creat_trnsaction(withdraw)
@@ -76,11 +65,13 @@ class TransferService:
         return {"Message": "Transfer created"}
 
     def get_all_transfers(self) -> list[dict[str, Any]]:
+        """Returns all transfers as dicts."""
         transfers = self.repo.get_all()
 
         return [transfer_to_dict(transfer) for transfer in transfers]
 
     def get_all_by_account(self, account_id: UUID) -> list[dict[str, Any]]:
+        """Returns all transfers for account."""
         all_transfers = self.repo.get_all()
         return [
             transfer_to_dict(transfer)
@@ -90,11 +81,15 @@ class TransferService:
         ]
 
     def get_by_id(self, transfer_id: UUID) -> dict[str, Any]:
+        """Returns transfer by id."""
         transfer = self.repo.get(transfer_id)
+        if transfer is None:
+            raise ValueError(f"Transfer with id {transfer_id} not found")
 
         return transfer_to_dict(transfer)
 
     def delete_transfer(self, transfer_id: UUID) -> dict[str, str]:
+        """Deletes transfer and returns message."""
         self.repo.delete(transfer_id)
 
         return {"Message": "Transfer deleted"}

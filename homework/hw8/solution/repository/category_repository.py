@@ -1,7 +1,7 @@
 from .base_repository import BaseRepository
 from ..models.category import Category, CategoryType
 from .csv_accessor import CsvFileAccessor
-from constants.headers import category_headers
+from constants.headers import category_headers, CSVHeaders
 from uuid import UUID
 from typing import Optional
 
@@ -14,17 +14,19 @@ class CategoryRepository(BaseRepository[Category]):
         )
 
     def _row_to_entity(self, row: dict) -> Category:
+        """Returns Entity with row data"""
         return Category(
-            id=UUID(row["id"]),
-            name=row["name"],
-            type=CategoryType(row["type"]),
-            is_deleted=row["is_deleted"],
+            id=UUID(row[CSVHeaders.ID.value]),
+            name=row[CSVHeaders.NAME.value],
+            type=CategoryType(row[CSVHeaders.TYPE.value]),
+            is_deleted=row[CSVHeaders.IS_DELETED.value],
         )
 
     def _entity_to_row(self, entity: Category) -> dict:
+        """Returns Entity data as a row"""
         return {
-            "id": str(entity.id),
-            "name": entity.name,
-            "type": str(entity.type.value),
-            "is_deleted": entity.is_deleted,
+            CSVHeaders.ID.value: str(entity.id),
+            CSVHeaders.NAME.value: entity.name,
+            CSVHeaders.TYPE.value: str(entity.type.value),
+            CSVHeaders.IS_DELETED.value: entity.is_deleted,
         }

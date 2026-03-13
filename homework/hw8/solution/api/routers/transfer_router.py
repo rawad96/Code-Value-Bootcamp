@@ -17,7 +17,7 @@ TRANSFER_NOT_FOUND = "Transfer not found"
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_transfer(transfer: dict[str, Any] = Body(...)) -> dict[str, str]:
-
+    """Creates transfer."""
     for field in transfer_headers_request:
         if field not in transfer:
             raise HTTPException(
@@ -50,7 +50,7 @@ def get_all_transfers() -> list[dict[str, Any]]:
 
 @router.get("/{transfer_id}")
 def get_transfer(transfer_id: str) -> dict[str, Any]:
-
+    """Returns transfer by id."""
     try:
         transfer = service.get_by_id(UUID(transfer_id))
     except ValueError:
@@ -70,6 +70,7 @@ def get_transfer(transfer_id: str) -> dict[str, Any]:
 
 @router.get("/account/{account_id}")
 def get_transfers_by_account(account_id: str) -> list[dict[str, Any]]:
+    """Returns all transfers for account."""
     try:
         id = UUID(account_id)
     except ValueError:
@@ -83,6 +84,7 @@ def get_transfers_by_account(account_id: str) -> list[dict[str, Any]]:
 
 @router.delete("/{transfer_id}")
 def delete_transfer(transfer_id: str) -> dict[str, str]:
+    """Deletes transfer."""
     try:
         id = UUID(transfer_id)
     except ValueError:

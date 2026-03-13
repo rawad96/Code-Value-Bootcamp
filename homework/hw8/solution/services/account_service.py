@@ -8,15 +8,16 @@ from uuid import uuid4, UUID
 from decimal import Decimal
 from typing import Optional, Any
 
-CATEGORY_ID = "category_id"
+from constants.headers import CSVHeaders
 
 
 def account_to_dict(account: Account) -> dict[str, Any]:
+    """Returns account as dict."""
     return {
-        "id": str(account.id),
-        "name": account.name,
-        "opening_balance": str(account.opening_balance),
-        "is_deleted": account.is_deleted,
+        CSVHeaders.ID.value: str(account.id),
+        CSVHeaders.NAME.value: account.name,
+        CSVHeaders.OPENING_BALANCE.value: str(account.opening_balance),
+        CSVHeaders.IS_DELETED.value: account.is_deleted,
     }
 
 
@@ -32,6 +33,7 @@ class AccountService:
         self.category_service = category_service or CategoryService()
 
     def create_account(self, account: dict[str, Any]) -> dict[str, str]:
+        """Creates account and returns message."""
         new_account = Account(
             id=uuid4(),
             name=account["name"],
@@ -43,16 +45,21 @@ class AccountService:
         return {"Message": "Account created"}
 
     def get_all_accounts(self) -> list[dict[str, Any]]:
+        """Returns all accounts as dicts."""
         accounts = self.repo.get_all()
 
         return [account_to_dict(account) for account in accounts]
 
-    def get_by_id(self, account_id: UUID) -> dict[str, Any]:
+    def get_by_id(self, account_id: UUID) -> dict[str, Any] | None:
+        """Returns account by id or None."""
         account = self.repo.get(account_id)
+        if account is None:
+            return None
 
         return account_to_dict(account)
 
     def update_account(self, account: dict[str, Any]) -> dict[str, Any]:
+        """Updates account and returns it as dict."""
         new_account = Account(
             id=account["id"],
             name=account["name"],
@@ -64,31 +71,44 @@ class AccountService:
         return account_to_dict(updated_account)
 
     def delete_account(self, account_id: UUID) -> dict[str, str]:
+        """Deletes account and returns message."""
         self.repo.delete(account_id)
 
         return {"Message": "Account deleted"}
 
     def calculate_balance(self, account_id: UUID) -> Decimal:
         account = self.repo.get(account_id)
+        if account is None:
+            raise ValueError(f"Account with id {account_id} not found")
+
         transactions = self.transaction_service.get_all_by_account(account_id)
         balance = Decimal(account.opening_balance)
         category_cache = {}
 
-        for transaction in transactions:
-            if transaction[CATEGORY_ID] not in category_cache:
-                category_cache[transaction[CATEGORY_ID]] = (
-                    self.category_service.get_by_id(transaction[CATEGORY_ID])
-                )
-            category_type = category_cache[transaction[CATEGORY_ID]]
+        if transactions is None:
+            return balance
 
-            if category_type["type"] == CategoryType.INCOME.value:
-                balance += Decimal(transaction["amount"])
+        for transaction in transactions:
+            if transaction[CSVHeaders.CATEGORY_ID.value] not in category_cache:
+                category_cache[transaction[CSVHeaders.CATEGORY_ID.value]] = (
+                    self.category_service.get_by_id(
+                        transaction[CSVHeaders.CATEGORY_ID.value]
+                    )
+                )
+            category_type = category_cache[transaction[CSVHeaders.CATEGORY_ID.value]]
+
+            if category_type is None:
+                raise ValueError(f"Missed Category Type")
+
+            if category_type[CSVHeaders.TYPE.value] == CategoryType.INCOME.value:
+                balance += Decimal(transaction[CSVHeaders.AMOUNT.value])
             else:
-                balance -= Decimal(transaction["amount"])
+                balance -= Decimal(transaction[CSVHeaders.AMOUNT.value])
 
         return balance
 
     def calculate_net_worth(self) -> Decimal:
+        """Returns total net worth of all accounts."""
         accounts = self.repo.get_all()
         net_worth = sum(
             (self.calculate_balance(account.id) for account in accounts), Decimal(0)

@@ -1,10 +1,10 @@
 from .base_repository import BaseRepository
 from ..models.transaction import Transaction
 from .csv_accessor import CsvFileAccessor
-from constants.headers import transaction_headers
+from constants.headers import CSVHeaders, transaction_headers
 from uuid import UUID
 from decimal import Decimal
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 
@@ -17,22 +17,40 @@ class TransactionRepository(BaseRepository[Transaction]):
             )
         )
 
+    def _parse_date(self, date_str: str) -> date:
+        """Parses date string from CSV."""
+        if "/" in date_str:
+            return datetime.strptime(date_str, "%m/%d/%Y").date()
+        try:
+            return date.fromisoformat(date_str)
+        except ValueError as error:
+            print(error)
+        for fmt in ("%d-%m-%Y", "%m-%d-%Y"):
+            try:
+                return datetime.strptime(date_str, fmt).date()
+            except ValueError as error:
+                print(error)
+        raise ValueError(f"Invalid date format: {date_str!r}")
+
     def _row_to_entity(self, row: dict) -> Transaction:
+        """Returns Entity with row data"""
+        date_value = self._parse_date(row[CSVHeaders.DATE.value])
         return Transaction(
-            id=UUID(row["id"]),
-            account_id=UUID(row["account_id"]),
-            category_id=UUID(row["category_id"]),
-            amount=Decimal(row["amount"]),
-            date=date.fromisoformat(row["date"]),
-            is_deleted=row["is_deleted"],
+            id=UUID(row[CSVHeaders.ID.value]),
+            account_id=UUID(row[CSVHeaders.ACCOUNT_ID.value]),
+            category_id=UUID(row[CSVHeaders.CATEGORY_ID.value]),
+            amount=Decimal(row[CSVHeaders.AMOUNT.value]),
+            date=date_value,
+            is_deleted=row[CSVHeaders.IS_DELETED.value],
         )
 
     def _entity_to_row(self, entity: Transaction) -> dict:
+        """Returns Entity data as a row"""
         return {
-            "id": str(entity.id),
-            "account_id": str(entity.account_id),
-            "category_id": str(entity.category_id),
-            "amount": str(entity.amount),
-            "date": entity.date.isoformat(),
-            "is_deleted": entity.is_deleted,
+            CSVHeaders.ID.value: str(entity.id),
+            CSVHeaders.ACCOUNT_ID.value: str(entity.account_id),
+            CSVHeaders.CATEGORY_ID.value: str(entity.category_id),
+            CSVHeaders.AMOUNT.value: str(entity.amount),
+            CSVHeaders.DATE.value: entity.date.isoformat(),
+            CSVHeaders.IS_DELETED.value: entity.is_deleted,
         }

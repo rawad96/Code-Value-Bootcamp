@@ -10,6 +10,7 @@ service = ReportsService()
 
 @router.get("/monthly_summary")
 def monthly_summary(year: int, month: int) -> dict[str, Any]:
+    """Returns income, expenses and net flow for month."""
     try:
         summary = service.monthly_summary(year, month)
     except Exception as error:
@@ -37,6 +38,7 @@ def spending_by_category(year: int, month: int) -> list[dict[str, Any]]:
 
 @router.get("/dashboard")
 def dashboard() -> dict[str, Any]:
+    """Returns net worth and current month summary."""
     try:
         dashboard = service.dashboard()
     except Exception as error:

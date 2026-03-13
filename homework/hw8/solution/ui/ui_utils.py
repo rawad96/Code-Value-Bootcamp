@@ -1,21 +1,14 @@
 from solution.api.api_client import get
 from typing import Any
 
-AMOUNT = "amount"
-DATE = "date"
-TYPE = "type"
-CATEGORY_ID = "category_id"
-ACCOUNT_ID = "account_id"
-FROM_ACCOUNT_ID = "from_account_id"
-TO_ACCOUNT_ID = "to_account_id"
+from constants.headers import CSVHeaders
+
 INCOME = "income"
 EXPENSE = "expense"
-NAME = "name"
-ID = "id"
-OPENING_BALANCE = "opening_balance"
 
 
 def choose_from_list(items: list[dict], label_key: str) -> dict | None:
+    """Lets user pick one item from list, returns it or None."""
     if not items:
         print("No items available")
         return None
@@ -36,22 +29,23 @@ def choose_from_list(items: list[dict], label_key: str) -> dict | None:
 
 def choose_account() -> dict:
     accounts = get("/accounts/")
-    account = choose_from_list(accounts, NAME)
+    account = choose_from_list(accounts, CSVHeaders.NAME.value)
 
     if account:
         return {
-            ACCOUNT_ID: account[ID],
-            OPENING_BALANCE: account[OPENING_BALANCE],
+            CSVHeaders.ACCOUNT_ID.value: account[CSVHeaders.ID.value],
+            CSVHeaders.OPENING_BALANCE.value: account[CSVHeaders.OPENING_BALANCE.value],
         }
     return {}
 
 
 def choose_category() -> str:
+    """Lets user pick category, returns id."""
     categories = get("/categories/")
-    category = choose_from_list(categories, NAME)
+    category = choose_from_list(categories, CSVHeaders.NAME.value)
 
     if category:
-        return category[ID]
+        return category[CSVHeaders.ID.value]
 
     return ""
 
@@ -61,27 +55,28 @@ def choose_transaction() -> str:
 
     for index, transaction in enumerate(transactions, start=1):
         print(
-            f"{index}. {AMOUNT}:{transaction[AMOUNT]} "
-            f"{ACCOUNT_ID}:{transaction[ACCOUNT_ID]} "
-            f"{CATEGORY_ID}:{transaction[CATEGORY_ID]} "
-            f"{DATE}:{transaction[DATE]}"
+            f"{index}. {CSVHeaders.AMOUNT.value}:{transaction[CSVHeaders.AMOUNT.value]} "
+            f"{CSVHeaders.ACCOUNT_ID.value}:{transaction[CSVHeaders.ACCOUNT_ID.value]} "
+            f"{CSVHeaders.CATEGORY_ID.value}:{transaction[CSVHeaders.CATEGORY_ID.value]} "
+            f"{CSVHeaders.DATE.value}:{transaction[CSVHeaders.DATE.value]}"
         )
 
     choice = int(input("Choose transaction: ")) - 1
 
-    return transactions[choice][ID]
+    return transactions[choice][CSVHeaders.ID.value]
 
 
 def choose_transfer() -> str:
+    """Lets user pick transfer, returns id."""
     transfers = get("/transfers/")
 
     for index, transfer in enumerate(transfers, start=1):
         print(
-            f"{index}. {transfer[FROM_ACCOUNT_ID]} -> "
-            f"{transfer[TO_ACCOUNT_ID]} | "
-            f"{transfer[AMOUNT]}"
+            f"{index}. {transfer[CSVHeaders.FROM_ACCOUNT_ID.value]} -> "
+            f"{transfer[CSVHeaders.TO_ACCOUNT_ID.value]} | "
+            f"{transfer[CSVHeaders.AMOUNT.value]}"
         )
 
     choice = int(input("Choose transfer: ")) - 1
 
-    return transfers[choice][ID]
+    return transfers[choice][CSVHeaders.ID.value]

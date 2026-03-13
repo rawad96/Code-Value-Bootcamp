@@ -3,8 +3,10 @@ from solution.ui.ui_utils import choose_account, choose_transfer
 
 
 def view_transfers() -> None:
+    """Shows all transfers."""
     transfers = get("/transfers/")
 
+    print("\n-----All Transfers-----")
     for transfer in transfers:
         print(
             f"{transfer['from_account_id']} -> {transfer['to_account_id']} | "
@@ -13,10 +15,10 @@ def view_transfers() -> None:
 
 
 def add_transfer() -> None:
-    print("From account")
+    print("\nFrom account")
     from_account = choose_account()
 
-    print("To account")
+    print("\nTo account")
     to_account = choose_account()
 
     amount = input("Amount: ")
@@ -32,11 +34,12 @@ def add_transfer() -> None:
         },
     )
 
-    print("Transfer created")
+    print("\nTransfer created")
 
 
 def delete_transfer() -> None:
+    """Deletes transfer."""
     transfer_id = choose_transfer()
     delete(f"/transfers/{transfer_id}")
 
-    print("Transfer deleted")
+    print("\nTransfer deleted")

@@ -16,6 +16,7 @@ CATEGORY_NOT_FOUND = "Category not found"
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_category(category: dict[str, Any] = Body(...)) -> dict[str, str]:
+    """Creates category."""
     for field in category_headers_request:
         if field not in category:
             raise HTTPException(
@@ -37,6 +38,7 @@ def get_all_categories() -> list[dict[str, Any]]:
 
 @router.get("/{category_id}")
 def get_category(category_id: str) -> dict[str, Any]:
+    """Returns category by id."""
     try:
         category = service.get_by_id(UUID(category_id))
     except ValueError:
@@ -53,6 +55,7 @@ def get_category(category_id: str) -> dict[str, Any]:
 
 @router.get("/by-name/{name}")
 def get_category_by_name(name: str) -> dict[str, Any]:
+    """Returns category by name."""
     category = service.get_by_name(name)
     if category is None:
         raise HTTPException(
@@ -85,6 +88,7 @@ def update_category(category: dict[str, Any] = Body(...)) -> dict[str, Any]:
 
 @router.delete("/{category_id}")
 def delete_category(category_id: str) -> dict[str, str]:
+    """Deletes category."""
     try:
         service.delete_category(UUID(category_id))
     except ValueError:

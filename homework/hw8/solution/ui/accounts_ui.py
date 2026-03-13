@@ -3,10 +3,12 @@ from solution.ui.ui_utils import choose_account
 
 
 def view_accounts() -> None:
+    """Shows all accounts."""
     accounts = get("/accounts/")
 
+    print("\n-----All Accounts-----")
     for account in accounts:
-        print(f"\n{account['name']} | Opening balance: {account['opening_balance']}")
+        print(f"{account['name']} | Opening balance: {account['opening_balance']}")
 
 
 def add_account() -> None:
@@ -18,6 +20,7 @@ def add_account() -> None:
 
 
 def edit_account() -> None:
+    """Updates account."""
     account = choose_account()
     new_name = input("New name: ")
     put(
@@ -40,6 +43,7 @@ def delete_account() -> None:
 
 
 def view_account_balance() -> None:
+    """Shows balance for chosen account."""
     account = choose_account()
     balance = get(f"\n/accounts/{account["account_id"]}/balance")
 
@@ -47,6 +51,7 @@ def view_account_balance() -> None:
 
 
 def view_net_worth() -> None:
+    """Shows net worth."""
     net = get("/accounts/get/net/worth")
 
     print(f"\nNet Worth: {net}")

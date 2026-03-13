@@ -3,8 +3,10 @@ from solution.ui.ui_utils import choose_account, choose_category, choose_transac
 
 
 def view_transactions() -> None:
+    """Shows all transactions."""
     transactions = get("/transactions/")
 
+    print("\n-----All Transactions-----")
     for transaction in transactions:
         print(
             f"{transaction['amount']} | "
@@ -15,10 +17,10 @@ def view_transactions() -> None:
 
 
 def add_transaction() -> None:
-    print("Choose account")
+    print("\nChoose account")
     account = choose_account()
 
-    print("Choose category")
+    print("\nChoose category")
     category_id = choose_category()
 
     amount = input("Amount: ")
@@ -32,11 +34,12 @@ def add_transaction() -> None:
         },
     )
 
-    print("Transaction added")
+    print("\nTransaction added")
 
 
 def delete_transaction() -> None:
+    """Deletes transaction."""
     transaction_id = choose_transaction()
     delete(f"/transactions/{transaction_id}")
 
-    print("Transaction deleted")
+    print("\nTransaction deleted")

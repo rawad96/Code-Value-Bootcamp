@@ -1,53 +1,42 @@
-from solution.ui import accounts_ui
-from solution.ui import categories_ui
-from solution.ui import transactions_ui
-from solution.ui import transfers_ui
-from solution.ui import reports_ui
-from solution.ui import data_portability_ui
 from solution.ui import cli_menues
+from solution.ui.menu_options import MenuOptions
+from typing import Any
+
+BACK = "0 Back"
+CHOOSE_OPTION = "Choose option: "
+BREAK = "0"
+INVALID_CHOICE = "Invalid choice"
 
 
 class BudgetCLI:
-    def __init__(self):
-        self.accounts_menu = accounts_ui.accounts_menu
-        self.categories_menu = categories_ui.categories_menu
-        self.transactions_menu = transactions_ui.transactions_menu
-        self.transfers_menu = transfers_ui.transfers_menu
-        self.reports_menu = reports_ui.reports_menu
-        self.data_portability_menu = data_portability_ui.data_portability_menu
+    def __init__(self) -> None:
+        """Sets up menu actions."""
+        self.accounts_menu = cli_menues.accounts_menu
+        self.categories_menu = cli_menues.categories_menu
+        self.transactions_menu = cli_menues.transactions_menu
+        self.transfers_menu = cli_menues.transfers_menu
+        self.reports_menu = cli_menues.reports_menu
+        self.data_portability_menu = cli_menues.data_portability_menu
 
-    def run(self):
-
+    def run(self) -> None:
+        """Runs main menu loop."""
         while True:
             self.print_main_menu()
-            choice = input("Choose option: ")
+            try:
+                choice = MenuOptions(int(input(CHOOSE_OPTION)))
+            except ValueError:
+                print(INVALID_CHOICE)
 
-            if choice == "1":
-                self.accounts_menu()
-
-            elif choice == "2":
-                self.categories_menu()
-
-            elif choice == "3":
-                self.transactions_menu()
-
-            elif choice == "4":
-                self.transfers_menu()
-
-            elif choice == "5":
-                self.reports_menu()
-
-            elif choice == "6":
-                self.data_portability_menu()
-
-            elif choice == "0":
+            if choice == MenuOptions.ZERO:
                 print("Goodbye!")
                 break
 
-            else:
+            action = self.get_action(choice)
+            if action is None:
                 print("Invalid choice")
 
-    def print_main_menu(self):
+    def print_main_menu(self) -> None:
+        """Prints main menu options."""
         print("\n===== Budget Planner =====")
         print("1 Account Actions")
         print("2 Category Actions")
@@ -56,6 +45,24 @@ class BudgetCLI:
         print("5 Reports")
         print("6 Data Portability (Import/Export)")
         print("0 Exit")
+
+    def get_action(self, choice: str) -> Any:
+        """Returns menu action for choice or None."""
+        actions = {
+            MenuOptions.ONE: self.accounts_menu,
+            MenuOptions.TWO: self.categories_menu,
+            MenuOptions.THREE: self.transactions_menu,
+            MenuOptions.FOUR: self.transfers_menu,
+            MenuOptions.FIVE: self.reports_menu,
+            MenuOptions.SIX: self.data_portability_menu,
+        }
+
+        action = actions.get(choice)
+
+        if action:
+            return action()
+
+        return None
 
 
 if __name__ == "__main__":

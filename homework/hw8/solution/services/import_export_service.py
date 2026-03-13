@@ -6,41 +6,40 @@ from pathlib import Path
 
 from types import MappingProxyType
 
-DATA_FOLDER = Path("data")
+from constants.headers import CSVHeaders
 
-ID = "id"
-NAME = "name"
-AMOUNT = "amount"
-IS_DELETED = "is_deleted"
-OPENING_BALANCE = "opening_balance"
-ACCOUNT_ID = "account_id"
-TYPE = "type"
-FROM_ACCOUNT_ID = "from_account_id"
-TO_ACCOUNT_ID = "to_account_id"
-DATE = "date"
-DESCRIPTION = "description"
-CATEGORY_ID = "category_id"
+DATA_FOLDER = Path("data")
 
 REQUIRED_FILES = MappingProxyType(
     {
-        "accounts.csv": (ID, NAME, OPENING_BALANCE, IS_DELETED),
-        "categories.csv": (ID, NAME, TYPE, IS_DELETED),
+        "accounts.csv": (
+            CSVHeaders.ID.value,
+            CSVHeaders.NAME.value,
+            CSVHeaders.OPENING_BALANCE.value,
+            CSVHeaders.IS_DELETED.value,
+        ),
+        "categories.csv": (
+            CSVHeaders.ID.value,
+            CSVHeaders.NAME.value,
+            CSVHeaders.TYPE.value,
+            CSVHeaders.IS_DELETED.value,
+        ),
         "transactions.csv": (
-            ID,
-            ACCOUNT_ID,
-            CATEGORY_ID,
-            AMOUNT,
-            DATE,
-            IS_DELETED,
+            CSVHeaders.ID.value,
+            CSVHeaders.ACCOUNT_ID.value,
+            CSVHeaders.CATEGORY_ID.value,
+            CSVHeaders.AMOUNT.value,
+            CSVHeaders.DATE.value,
+            CSVHeaders.IS_DELETED.value,
         ),
         "transfers.csv": (
-            ID,
-            FROM_ACCOUNT_ID,
-            TO_ACCOUNT_ID,
-            AMOUNT,
-            DATE,
-            DESCRIPTION,
-            IS_DELETED,
+            CSVHeaders.ID.value,
+            CSVHeaders.FROM_ACCOUNT_ID.value,
+            CSVHeaders.TO_ACCOUNT_ID.value,
+            CSVHeaders.AMOUNT.value,
+            CSVHeaders.DATE.value,
+            CSVHeaders.DESCRIPTION.value,
+            CSVHeaders.IS_DELETED.value,
         ),
     }
 )
@@ -49,6 +48,7 @@ REQUIRED_FILES = MappingProxyType(
 class DataPortabilityService:
 
     def export_data(self) -> str:
+        """Zips all CSV data and returns path to zip."""
         export_path = DATA_FOLDER / "backup.zip"
 
         with zipfile.ZipFile(export_path, "w", zipfile.ZIP_DEFLATED) as zipf:
@@ -58,6 +58,7 @@ class DataPortabilityService:
         return str(export_path)
 
     def import_data(self, zip_path: str) -> None:
+        """Extracts zip and replaces data with zip contents."""
         with tempfile.TemporaryDirectory() as tmp:
             with zipfile.ZipFile(zip_path, "r") as zipf:
                 zipf.extractall(tmp)
@@ -70,12 +71,14 @@ class DataPortabilityService:
                 shutil.copy(extracted / file, DATA_FOLDER / file)
 
     def _check_files_exist(self, folder: Path) -> None:
+        """Raises if any required CSV is missing."""
         for file in REQUIRED_FILES.keys():
             path = folder / file
             if not path.exists():
                 raise ValueError(f"Missing file: {file}")
 
     def _check_file_columns(self, folder: Path) -> None:
+        """Raises if any file has wrong columns."""
         for file, columns in REQUIRED_FILES.items():
             path = folder / file
             self._check_single_file_columns(file, path, columns)
@@ -83,6 +86,7 @@ class DataPortabilityService:
     def _check_single_file_columns(
         self, file: str, path: Path, columns: tuple[str, ...]
     ) -> None:
+        """Raises if file missing any of given columns."""
         with open(path, newline="") as fi:
             reader = csv.DictReader(fi)
             if reader.fieldnames is None:
@@ -92,5 +96,6 @@ class DataPortabilityService:
                     raise ValueError(f"{file} missing column: {column}")
 
     def _validate_files(self, folder: Path) -> None:
+        """Checks files exist and have right columns."""
         self._check_files_exist(folder)
         self._check_file_columns(folder)

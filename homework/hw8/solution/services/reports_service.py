@@ -5,14 +5,10 @@ from datetime import datetime
 from .account_service import AccountService
 from .transaction_service import TransactionService
 from .category_service import CategoryService
+from constants.headers import CSVHeaders
 
-AMOUNT = "amount"
-DATE = "date"
-TYPE = "type"
-CATEGORY_ID = "category_id"
 INCOME = "income"
 EXPENSE = "expense"
-NAME = "name"
 
 
 class ReportsService:
@@ -27,17 +23,27 @@ class ReportsService:
         self.category_service = category_service or CategoryService()
 
     def monthly_summary(self, year: int, month: int) -> dict[str, Any]:
+        """Returns income, expenses and net flow for month."""
         transactions = self.transaction_service.get_all_transaction()
         income = Decimal(0)
         expenses = Decimal(0)
 
         for transaction in transactions:
-            if transaction[DATE].year == year and transaction[DATE].month == month:
-                category = self.category_service.get_by_id(transaction[CATEGORY_ID])
-                if category[TYPE] == INCOME:
-                    income += Decimal(transaction[AMOUNT])
+            if (
+                transaction[CSVHeaders.DATE.value].year == year
+                and transaction[CSVHeaders.DATE.value].month == month
+            ):
+                category = self.category_service.get_by_id(
+                    transaction[CSVHeaders.CATEGORY_ID.value]
+                )
+
+                if category is None:
+                    raise ValueError(f"Missed Category")
+
+                if category[CSVHeaders.TYPE.value] == INCOME:
+                    income += Decimal(transaction[CSVHeaders.AMOUNT.value])
                 else:
-                    expenses += Decimal(transaction[AMOUNT])
+                    expenses += Decimal(transaction[CSVHeaders.AMOUNT.value])
 
         net_flow = income - expenses
         return {
@@ -49,16 +55,27 @@ class ReportsService:
         }
 
     def spending_by_category(self, year: int, month: int) -> list[dict[str, Any]]:
+        """Returns total per category for month."""
         transactions = self.transaction_service.get_all_transaction()
         category_totals: dict[str, Decimal] = {}
 
         for transaction in transactions:
-            if transaction[DATE].year == year and transaction[DATE].month == month:
-                category = self.category_service.get_by_id(transaction[CATEGORY_ID])
-                if category[TYPE] == EXPENSE:
-                    category_totals[category[NAME]] = category_totals.get(
-                        category[NAME], Decimal(0)
-                    ) + Decimal(transaction[AMOUNT])
+            if (
+                transaction[CSVHeaders.DATE.value].year == year
+                and transaction[CSVHeaders.DATE.value].month == month
+            ):
+                category = self.category_service.get_by_id(
+                    transaction[CSVHeaders.CATEGORY_ID.value]
+                )
+
+                if category is None:
+                    raise ValueError(f"Missed Category")
+
+                if category[CSVHeaders.TYPE.value] == EXPENSE:
+                    category_totals[category[CSVHeaders.NAME.value]] = (
+                        category_totals.get(category[CSVHeaders.NAME.value], Decimal(0))
+                        + Decimal(transaction[CSVHeaders.AMOUNT.value])
+                    )
 
         return [
             {"category": key, "total": str(value)}
@@ -66,6 +83,7 @@ class ReportsService:
         ]
 
     def dashboard(self) -> dict[str, Any]:
+        """Returns net worth and current month summary."""
         now = datetime.now()
         net_worth = self.account_service.calculate_net_worth()
 
@@ -75,14 +93,20 @@ class ReportsService:
 
         for transaction in transactions:
             if (
-                transaction[DATE].year == now.year
-                and transaction[DATE].month == now.month
+                transaction[CSVHeaders.DATE.value].year == now.year
+                and transaction[CSVHeaders.DATE.value].month == now.month
             ):
-                category = self.category_service.get_by_id(transaction[CATEGORY_ID])
-                if category[TYPE] == INCOME:
-                    monthly_income += Decimal(transaction[AMOUNT])
+                category = self.category_service.get_by_id(
+                    transaction[CSVHeaders.CATEGORY_ID.value]
+                )
+
+                if category is None:
+                    raise ValueError(f"Missed Category")
+
+                if category[CSVHeaders.TYPE.value] == INCOME:
+                    monthly_income += Decimal(transaction[CSVHeaders.AMOUNT.value])
                 else:
-                    monthly_expenses += Decimal(transaction[AMOUNT])
+                    monthly_expenses += Decimal(transaction[CSVHeaders.AMOUNT.value])
 
         return {
             "net_worth": str(net_worth),

@@ -17,6 +17,7 @@ ACCOUNT_NOT_FOUND = "Account not found"
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_account(account: dict[str, Any] = Body(...)) -> dict[str, str]:
+    """Creates account."""
     for field in account_headers_request:
         if field not in account:
             raise HTTPException(
@@ -35,6 +36,7 @@ def create_account(account: dict[str, Any] = Body(...)) -> dict[str, str]:
 
 @router.get("/")
 def get_accounts() -> list[dict[str, Any]]:
+    """Returns all accounts."""
     return service.get_all_accounts()
 
 
@@ -56,6 +58,7 @@ def get_account(account_id: str) -> dict[str, Any]:
 
 @router.put("/")
 def update_account(account: dict[str, Any]) -> dict[str, Any]:
+    """Updates account."""
     if "id" not in account:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Missing 'id'"
@@ -95,6 +98,7 @@ def delete_account(account_id: str) -> dict[str, str]:
 
 @router.get("/{account_id}/balance")
 def calculate_balance(account_id: str) -> Decimal:
+    """Returns balance for account."""
     try:
         id = UUID(account_id)
     except ValueError:
@@ -112,4 +116,5 @@ def calculate_balance(account_id: str) -> Decimal:
 
 @router.get("/get/net/worth")
 def calculate_net_worth() -> Decimal:
+    """Returns net worth of all accounts."""
     return service.calculate_net_worth()
