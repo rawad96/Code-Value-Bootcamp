@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class CSVHeaders(Enum):
+class TablesHeaders(Enum):
     ID = "id"
     NAME = "name"
     AMOUNT = "amount"
@@ -17,64 +17,64 @@ class CSVHeaders(Enum):
 
 
 csv_accessor_headers = [
-    CSVHeaders.ID.value,
-    CSVHeaders.NAME.value,
-    CSVHeaders.OPENING_BALANCE.value,
-    CSVHeaders.IS_DELETED.value,
+    TablesHeaders.ID.value,
+    TablesHeaders.NAME.value,
+    TablesHeaders.OPENING_BALANCE.value,
+    TablesHeaders.IS_DELETED.value,
 ]
 
 account_headers = [
-    CSVHeaders.ID.value,
-    CSVHeaders.NAME.value,
-    CSVHeaders.OPENING_BALANCE.value,
-    CSVHeaders.IS_DELETED.value,
+    TablesHeaders.ID.value,
+    TablesHeaders.NAME.value,
+    TablesHeaders.OPENING_BALANCE.value,
+    TablesHeaders.IS_DELETED.value,
 ]
 
 category_headers = [
-    CSVHeaders.ID.value,
-    CSVHeaders.NAME.value,
-    CSVHeaders.TYPE.value,
-    CSVHeaders.IS_DELETED.value,
+    TablesHeaders.ID.value,
+    TablesHeaders.NAME.value,
+    TablesHeaders.TYPE.value,
+    TablesHeaders.IS_DELETED.value,
 ]
 
 transaction_headers = [
-    CSVHeaders.ID.value,
-    CSVHeaders.ACCOUNT_ID.value,
-    CSVHeaders.CATEGORY_ID.value,
-    CSVHeaders.AMOUNT.value,
-    CSVHeaders.DATE.value,
-    CSVHeaders.IS_DELETED.value,
+    TablesHeaders.ID.value,
+    TablesHeaders.ACCOUNT_ID.value,
+    TablesHeaders.CATEGORY_ID.value,
+    TablesHeaders.AMOUNT.value,
+    TablesHeaders.DATE.value,
+    TablesHeaders.IS_DELETED.value,
 ]
 
 transfer_headers = [
-    CSVHeaders.ID.value,
-    CSVHeaders.FROM_ACCOUNT_ID.value,
-    CSVHeaders.TO_ACCOUNT_ID.value,
-    CSVHeaders.AMOUNT.value,
-    CSVHeaders.DATE.value,
-    CSVHeaders.DESCRIPTION.value,
-    CSVHeaders.IS_DELETED.value,
+    TablesHeaders.ID.value,
+    TablesHeaders.FROM_ACCOUNT_ID.value,
+    TablesHeaders.TO_ACCOUNT_ID.value,
+    TablesHeaders.AMOUNT.value,
+    TablesHeaders.DATE.value,
+    TablesHeaders.DESCRIPTION.value,
+    TablesHeaders.IS_DELETED.value,
 ]
 
 account_headers_request = [
-    CSVHeaders.NAME.value,
-    CSVHeaders.OPENING_BALANCE.value,
+    TablesHeaders.NAME.value,
+    TablesHeaders.OPENING_BALANCE.value,
 ]
 
 category_headers_request = [
-    CSVHeaders.NAME.value,
-    CSVHeaders.TYPE.value,
+    TablesHeaders.NAME.value,
+    TablesHeaders.TYPE.value,
 ]
 
 transaction_headers_request = [
-    CSVHeaders.ACCOUNT_ID.value,
-    CSVHeaders.CATEGORY_ID.value,
-    CSVHeaders.AMOUNT.value,
+    TablesHeaders.ACCOUNT_ID.value,
+    TablesHeaders.CATEGORY_ID.value,
+    TablesHeaders.AMOUNT.value,
 ]
 
 transfer_headers_request = [
-    CSVHeaders.FROM_ACCOUNT_ID.value,
-    CSVHeaders.TO_ACCOUNT_ID.value,
-    CSVHeaders.AMOUNT.value,
-    CSVHeaders.DESCRIPTION.value,
+    TablesHeaders.FROM_ACCOUNT_ID.value,
+    TablesHeaders.TO_ACCOUNT_ID.value,
+    TablesHeaders.AMOUNT.value,
+    TablesHeaders.DESCRIPTION.value,
 ]

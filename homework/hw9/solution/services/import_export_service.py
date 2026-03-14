@@ -6,40 +6,40 @@ from pathlib import Path
 
 from types import MappingProxyType
 
-from constants.headers import CSVHeaders
+from constants.headers import TablesHeaders
 
 DATA_FOLDER = Path("data")
 
 REQUIRED_FILES = MappingProxyType(
     {
         "accounts.csv": (
-            CSVHeaders.ID.value,
-            CSVHeaders.NAME.value,
-            CSVHeaders.OPENING_BALANCE.value,
-            CSVHeaders.IS_DELETED.value,
+            TablesHeaders.ID.value,
+            TablesHeaders.NAME.value,
+            TablesHeaders.OPENING_BALANCE.value,
+            TablesHeaders.IS_DELETED.value,
         ),
         "categories.csv": (
-            CSVHeaders.ID.value,
-            CSVHeaders.NAME.value,
-            CSVHeaders.TYPE.value,
-            CSVHeaders.IS_DELETED.value,
+            TablesHeaders.ID.value,
+            TablesHeaders.NAME.value,
+            TablesHeaders.TYPE.value,
+            TablesHeaders.IS_DELETED.value,
         ),
         "transactions.csv": (
-            CSVHeaders.ID.value,
-            CSVHeaders.ACCOUNT_ID.value,
-            CSVHeaders.CATEGORY_ID.value,
-            CSVHeaders.AMOUNT.value,
-            CSVHeaders.DATE.value,
-            CSVHeaders.IS_DELETED.value,
+            TablesHeaders.ID.value,
+            TablesHeaders.ACCOUNT_ID.value,
+            TablesHeaders.CATEGORY_ID.value,
+            TablesHeaders.AMOUNT.value,
+            TablesHeaders.DATE.value,
+            TablesHeaders.IS_DELETED.value,
         ),
         "transfers.csv": (
-            CSVHeaders.ID.value,
-            CSVHeaders.FROM_ACCOUNT_ID.value,
-            CSVHeaders.TO_ACCOUNT_ID.value,
-            CSVHeaders.AMOUNT.value,
-            CSVHeaders.DATE.value,
-            CSVHeaders.DESCRIPTION.value,
-            CSVHeaders.IS_DELETED.value,
+            TablesHeaders.ID.value,
+            TablesHeaders.FROM_ACCOUNT_ID.value,
+            TablesHeaders.TO_ACCOUNT_ID.value,
+            TablesHeaders.AMOUNT.value,
+            TablesHeaders.DATE.value,
+            TablesHeaders.DESCRIPTION.value,
+            TablesHeaders.IS_DELETED.value,
         ),
     }
 )

@@ -7,7 +7,15 @@ from solution.api.routers.transfer_router import router as transfer_router
 from solution.api.routers.reports_router import router as report_router
 from solution.api.routers.data_portability_router import router as data_router
 
+from seed.seed_default_categories import seed_categories
+
 app = FastAPI()
+
+
+@app.on_event("startup")
+async def startup_event():
+    await seed_categories()
+
 
 app.include_router(account_router)
 app.include_router(category_router)

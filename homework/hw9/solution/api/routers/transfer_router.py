@@ -25,7 +25,7 @@ def check_fields(transfer: dict[str, Any]) -> None:
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_transfer(transfer: dict[str, Any]) -> dict[str, str]:
+async def create_transfer(transfer: dict[str, Any]) -> dict[str, Any]:
     """Creates transfer."""
     check_fields(transfer)
     try:
@@ -49,19 +49,19 @@ def create_transfer(transfer: dict[str, Any]) -> dict[str, str]:
             detail="Cannot transfer to the same account",
         )
 
-    return service.creat_transfer(transfer)
+    return await service.creat_transfer(transfer)
 
 
 @router.get("/")
-def get_all_transfers() -> list[dict[str, Any]]:
-    return service.get_all_transfers()
+async def get_all_transfers() -> list[dict[str, Any]]:
+    return await service.get_all_transfers()
 
 
 @router.get("/{transfer_id}")
-def get_transfer(transfer_id: str) -> dict[str, Any]:
+async def get_transfer(transfer_id: str) -> dict[str, Any]:
     """Returns transfer by id."""
     try:
-        transfer = service.get_by_id(UUID(transfer_id))
+        transfer = await service.get_by_id(UUID(transfer_id))
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -78,7 +78,7 @@ def get_transfer(transfer_id: str) -> dict[str, Any]:
 
 
 @router.get("/account/{account_id}")
-def get_transfers_by_account(account_id: str) -> list[dict[str, Any]]:
+async def get_transfers_by_account(account_id: str) -> list[dict[str, Any]]:
     """Returns all transfers for account."""
     try:
         id = UUID(account_id)
@@ -88,11 +88,11 @@ def get_transfers_by_account(account_id: str) -> list[dict[str, Any]]:
             detail=IVALID_UUID_FORMAT,
         )
 
-    return service.get_all_by_account(id)
+    return await service.get_all_by_account(id)
 
 
 @router.delete("/{transfer_id}")
-def delete_transfer(transfer_id: str) -> dict[str, str]:
+async def delete_transfer(transfer_id: str) -> dict[str, str]:
     """Deletes transfer."""
     try:
         id = UUID(transfer_id)
@@ -102,7 +102,7 @@ def delete_transfer(transfer_id: str) -> dict[str, str]:
             detail=IVALID_UUID_FORMAT,
         )
 
-    transfer = service.get_by_id(id)
+    transfer = await service.get_by_id(id)
 
     if transfer is None:
         raise HTTPException(
@@ -110,4 +110,4 @@ def delete_transfer(transfer_id: str) -> dict[str, str]:
             detail=TRANSFER_NOT_FOUND,
         )
 
-    return service.delete_transfer(id)
+    return await service.delete_transfer(id)

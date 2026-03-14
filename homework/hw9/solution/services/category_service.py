@@ -3,6 +3,8 @@ from ..models.category import Category, CategoryType
 from uuid import uuid4, UUID
 from typing import Optional, Any
 
+from solution.database import async_session_maker
+
 
 def category_to_dict(category: Category) -> dict[str, Any]:
     """Returns category as dict."""
@@ -17,54 +19,62 @@ def category_to_dict(category: Category) -> dict[str, Any]:
 
 
 class CategoryService:
-    def __init__(self, repo: Optional[CategoryRepository] = None):
+    def __init__(
+        self,
+        repo: Optional[CategoryRepository] = None,
+        session_maker=None,
+    ):
         self.repo = repo or CategoryRepository()
+        self.session_maker = session_maker or async_session_maker
 
-    def creat_category(self, category: dict[str, Any]) -> dict[str, str]:
+    async def creat_category(self, category: dict[str, Any]) -> dict[str, str]:
         """Creates category and returns message."""
-        new_category = Category(
-            id=uuid4(),
-            name=category["name"],
-            type=CategoryType(category["type"]),
-            is_deleted="false",
-        )
-        self.repo.create(new_category)
-        return {"Message": "Category created"}
+        async with self.session_maker() as session:
+            async with session.begin():
+                new_category = Category(
+                    name=category["name"],
+                    type=CategoryType(category["type"]),
+                )
+                result = await self.repo.create(new_category, session)
+            return category_to_dict(result)
 
-    def get_all_categories(self) -> list[dict[str, Any]]:
+    async def get_all_categories(self) -> list[dict[str, Any]]:
         """Returns all categories as dicts."""
-        categories = self.repo.get_all()
-        return [category_to_dict(category) for category in categories]
+        async with self.session_maker() as session:
+            categories = await self.repo.get_all(session)
+            return [category_to_dict(category) for category in categories]
 
-    def get_by_id(self, category_id: UUID) -> dict[str, Any] | None:
+    async def get_by_id(self, category_id: UUID) -> dict[str, Any] | None:
         """Returns category by id or None."""
-        category = self.repo.get(category_id)
-        if category is None:
-            return None
-        return category_to_dict(category)
+        async with self.session_maker() as session:
+            category = await self.repo.get(category_id, session)
+            if category is None:
+                return None
+            return category_to_dict(category)
 
-    def get_by_name(self, name: str) -> dict[str, Any] | None:
+    async def get_by_name(self, name: str) -> dict[str, Any] | None:
         """Returns category by name or None."""
-        categories = self.repo.get_all()
-        for category in categories:
-            if category.name == name:
-                return category_to_dict(category)
-        return None
+        async with self.session_maker() as session:
+            categories = await self.repo.get_all(session)
+            for category in categories:
+                if category.name == name:
+                    return category_to_dict(category)
+            return None
 
-    def update_category(self, category: dict[str, Any]) -> dict[str, Any]:
+    async def update_category(self, category: dict[str, Any]) -> dict[str, Any]:
         """Updates category and returns it as dict."""
-        new_category = Category(
-            id=category["id"],
-            name=category["name"],
-            type=CategoryType(category["type"]),
-            is_deleted="false",
-        )
-        updated_category = self.repo.update(new_category)
+        async with self.session_maker() as session:
+            async with session.begin():
+                new_category = Category(
+                    id=category["id"],
+                    name=category["name"],
+                    type=CategoryType(category["type"]),
+                )
+                updated_category = await self.repo.update(new_category, session)
+            return category_to_dict(updated_category)
 
-        return category_to_dict(updated_category)
-
-    def delete_category(self, category_id: UUID) -> dict[str, str]:
+    async def delete_category(self, category_id: UUID) -> dict[str, str]:
         """Deletes category and returns message."""
-        self.repo.delete(category_id)
-
-        return {"Message": "Category deleted"}
+        async with self.session_maker() as session:
+            await self.repo.delete(category_id, session)
+            return {"Message": "Category deleted"}

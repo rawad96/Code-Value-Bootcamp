@@ -10,59 +10,50 @@ T_ENTITY = TypeVar("T_ENTITY", bound=BaseEntity)
 
 
 class BaseRepository(ABC, Generic[T_ENTITY]):
-    def __init__(self, entity_class: Type[T_ENTITY], session: AsyncSession) -> None:
+    def __init__(self, entity_class: Type[T_ENTITY]) -> None:
         self.entity_class: Type[T_ENTITY] = entity_class
-        self.session: AsyncSession = session
 
-    async def create(self, item: T_ENTITY) -> T_ENTITY:
+    async def create(self, item: T_ENTITY, session: AsyncSession) -> T_ENTITY:
         """Adds item and returns it."""
-        self.session.add(item)
-        await self.session.flush()
-        await self.session.refresh(item)
+        session.add(item)
+        await session.flush()
+        await session.refresh(item)
         return item
 
-    async def get(self, item_id: str) -> T_ENTITY | None:
+    async def get(self, item_id: str, session: AsyncSession) -> T_ENTITY | None:
         """Return item by id"""
-        return await self.session.get(self.entity_class, item_id)
+        return await session.get(self.entity_class, item_id)
 
-    async def get_all(self) -> list[T_ENTITY]:
+    async def get_all(self, session: AsyncSession) -> list[T_ENTITY]:
         """Returns all items."""
-        result = await self.session.scalars(select(self.entity_class))
+        result = await session.scalars(select(self.entity_class))
         return list(result.all())
 
-    async def update(self, item: T_ENTITY) -> T_ENTITY:
+    async def update(self, item: T_ENTITY, session: AsyncSession) -> T_ENTITY:
         """Update a given item."""
-        obj = self.session.get(self.entity_class, item.id)
+        id = str(item.id)
+        obj = await session.get(self.entity_class, id)
         if not obj:
             class_name = self.entity_class.__name__
             raise ValueError(f"{class_name} with id {item.id} not found")
-        for attr, value in vars(item).items():
-            if attr in ("id", "created_at", "is_deleted"):
+        for key, value in vars(item).items():
+            if key.startswith("_"):
                 continue
-            setattr(obj, attr, value)
+            if key in ("id", "date", "is_deleted"):
+                continue
+            setattr(obj, key, value)
 
-        self.session.add(obj)
-        await self.session.flush()
-        await self.session.refresh(obj)
+        await session.flush()
+        await session.refresh(obj)
 
         return obj
 
-    async def delete(self, item_id: str) -> None:
+    async def delete(self, item_id: str, session: AsyncSession) -> None:
         """Marks item as deleted."""
         stmt = (
             sql_update(self.entity_class)
             .where(self.entity_class.id == item_id)
             .values(is_deleted=True)
         )
-        await self.session.execute(stmt)
-        await self.session.flush()
-
-    @abstractmethod
-    def _row_to_entity(self, row: dict) -> T_ENTITY:
-        """Returns Entity with row data"""
-        raise NotImplementedError
-
-    @abstractmethod
-    def _entity_to_row(self, entity: T_ENTITY) -> dict:
-        """Returns Entity data as a row"""
-        raise NotImplementedError
+        await session.execute(stmt)
+        await session.flush()

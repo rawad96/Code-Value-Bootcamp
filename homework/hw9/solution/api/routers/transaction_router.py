@@ -16,7 +16,7 @@ service = TransactionService()
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_transaction(transaction: dict[str, Any]) -> dict[str, str]:
+async def create_transaction(transaction: dict[str, Any]) -> dict[str, Any]:
     """Creates transaction."""
     for field in transaction_headers_request:
         if field not in transaction:
@@ -39,20 +39,20 @@ def create_transaction(transaction: dict[str, Any]) -> dict[str, str]:
             detail=IVALID_UUID_FORMAT,
         )
 
-    return service.creat_trnsaction(transaction)
+    return await service.creat_trnsaction(transaction)
 
 
 @router.get("/")
-def get_all_transactions() -> list[dict[str, Any]]:
+async def get_all_transactions() -> list[dict[str, Any]]:
     """Returns all transactions."""
-    return service.get_all_transaction()
+    return await service.get_all_transaction()
 
 
 @router.get("/{transaction_id}")
-def get_transaction(transaction_id: str) -> dict[str, Any]:
+async def get_transaction(transaction_id: str) -> dict[str, Any]:
     """Returns transaction by id."""
     try:
-        transaction = service.get_by_id(UUID(transaction_id))
+        transaction = await service.get_by_id(UUID(transaction_id))
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -69,10 +69,10 @@ def get_transaction(transaction_id: str) -> dict[str, Any]:
 
 
 @router.get("/account/{account_id}")
-def get_transactions_by_account(account_id: str) -> list[dict[str, Any]]:
+async def get_transactions_by_account(account_id: str) -> list[dict[str, Any]]:
     """Returns all transactions for account."""
     try:
-        transactions = service.get_all_by_account(UUID(account_id))
+        transactions = await service.get_all_by_account(UUID(account_id))
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -83,10 +83,10 @@ def get_transactions_by_account(account_id: str) -> list[dict[str, Any]]:
 
 
 @router.delete("/{transaction_id}")
-def delete_transaction(transaction_id: str) -> dict[str, str]:
+async def delete_transaction(transaction_id: str) -> dict[str, str]:
     """Deletes transaction."""
     try:
-        transaction = service.get_by_id(UUID(transaction_id))
+        transaction = await service.get_by_id(UUID(transaction_id))
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -99,4 +99,4 @@ def delete_transaction(transaction_id: str) -> dict[str, str]:
             detail=TRANSACTION_NOT_FOUND,
         )
 
-    return service.delete_transaction(UUID(transaction_id))
+    return await service.delete_transaction(UUID(transaction_id))

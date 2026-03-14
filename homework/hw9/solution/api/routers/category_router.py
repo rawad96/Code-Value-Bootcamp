@@ -15,7 +15,7 @@ CATEGORY_NOT_FOUND = "Category not found"
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_category(category: dict[str, Any]) -> dict[str, str]:
+async def create_category(category: dict[str, Any]) -> dict[str, Any]:
     """Creates category."""
     for field in category_headers_request:
         if field not in category:
@@ -28,19 +28,19 @@ def create_category(category: dict[str, Any]) -> dict[str, str]:
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Type must be 'income' or 'expense'",
         )
-    return service.creat_category(category)
+    return await service.creat_category(category)
 
 
 @router.get("/")
-def get_all_categories() -> list[dict[str, Any]]:
-    return service.get_all_categories()
+async def get_all_categories() -> list[dict[str, Any]]:
+    return await service.get_all_categories()
 
 
 @router.get("/{category_id}")
-def get_category(category_id: str) -> dict[str, Any]:
+async def get_category(category_id: str) -> dict[str, Any]:
     """Returns category by id."""
     try:
-        category = service.get_by_id(UUID(category_id))
+        category = await service.get_by_id(UUID(category_id))
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -54,9 +54,9 @@ def get_category(category_id: str) -> dict[str, Any]:
 
 
 @router.get("/by-name/{name}")
-def get_category_by_name(name: str) -> dict[str, Any]:
+async def get_category_by_name(name: str) -> dict[str, Any]:
     """Returns category by name."""
-    category = service.get_by_name(name)
+    category = await service.get_by_name(name)
     if category is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=CATEGORY_NOT_FOUND
@@ -65,7 +65,7 @@ def get_category_by_name(name: str) -> dict[str, Any]:
 
 
 @router.put("/")
-def update_category(category: dict[str, Any]) -> dict[str, Any]:
+async def update_category(category: dict[str, Any]) -> dict[str, Any]:
     if "id" not in category:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -78,7 +78,7 @@ def update_category(category: dict[str, Any]) -> dict[str, Any]:
             status_code=status.HTTP_400_BAD_REQUEST, detail=IVALID_UUID_FORMAT
         )
 
-    updated_category = service.update_category(category)
+    updated_category = await service.update_category(category)
     if updated_category is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=CATEGORY_NOT_FOUND
@@ -87,10 +87,10 @@ def update_category(category: dict[str, Any]) -> dict[str, Any]:
 
 
 @router.delete("/{category_id}")
-def delete_category(category_id: str) -> dict[str, str]:
+async def delete_category(category_id: str) -> dict[str, str]:
     """Deletes category."""
     try:
-        service.delete_category(UUID(category_id))
+        await service.delete_category(UUID(category_id))
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,

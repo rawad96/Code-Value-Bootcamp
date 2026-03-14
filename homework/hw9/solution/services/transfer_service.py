@@ -1,23 +1,23 @@
 from ..repository.transfer_repository import TransferRepository
 from ..services.transaction_service import TransactionService
 from ..services.category_service import CategoryService
-from ..models.transaction import Transaction
 from ..models.transfer import Transfer
-from uuid import uuid4, UUID
+from uuid import UUID
 from typing import Optional, Any
-from datetime import datetime
-from constants.headers import CSVHeaders
+from constants.headers import TablesHeaders
+
+from solution.database import async_session_maker
 
 
 def transfer_to_dict(transfer: Transfer) -> dict[str, Any]:
     """Returns transfer as dict."""
     return {
-        CSVHeaders.ID.value: str(transfer.id),
-        CSVHeaders.FROM_ACCOUNT_ID.value: str(transfer.from_account_id),
-        CSVHeaders.TO_ACCOUNT_ID.value: str(transfer.to_account_id),
-        CSVHeaders.AMOUNT.value: str(transfer.amount),
-        CSVHeaders.DATE.value: transfer.date.isoformat(),
-        CSVHeaders.DESCRIPTION.value: transfer.description,
+        TablesHeaders.ID.value: str(transfer.id),
+        TablesHeaders.FROM_ACCOUNT_ID.value: str(transfer.from_account_id),
+        TablesHeaders.TO_ACCOUNT_ID.value: str(transfer.to_account_id),
+        TablesHeaders.AMOUNT.value: str(transfer.amount),
+        TablesHeaders.DATE.value: transfer.date.isoformat(),
+        TablesHeaders.DESCRIPTION.value: transfer.description,
     }
 
 
@@ -27,74 +27,85 @@ class TransferService:
         repo: Optional[TransferRepository] = None,
         transaction_service: Optional[TransactionService] = None,
         category_service: Optional[CategoryService] = None,
+        session_maker=None,
     ):
         self.repo = repo or TransferRepository()
         self.transaction_service = transaction_service or TransactionService()
         self.category_service = category_service or CategoryService()
+        self.session_maker = session_maker or async_session_maker
 
-    def creat_transfer(self, transfer: dict[str, Any]) -> dict[str, str]:
-        new_transfer = Transfer(
-            id=uuid4(),
-            from_account_id=transfer[CSVHeaders.FROM_ACCOUNT_ID.value],
-            to_account_id=transfer[CSVHeaders.TO_ACCOUNT_ID.value],
-            amount=transfer[CSVHeaders.AMOUNT.value],
-            date=datetime.now().date(),
-            description=transfer[CSVHeaders.DESCRIPTION.value],
-            is_deleted="false",
-        )
-        self.repo.create(new_transfer)
+    async def creat_transfer(self, transfer: dict[str, Any]) -> dict[str, str]:
+        """Creates transfer and returns it."""
+        async with self.session_maker() as session:
+            async with session.begin():
+                new_transfer = Transfer(
+                    from_account_id=transfer[TablesHeaders.FROM_ACCOUNT_ID.value],
+                    to_account_id=transfer[TablesHeaders.TO_ACCOUNT_ID.value],
+                    amount=transfer[TablesHeaders.AMOUNT.value],
+                    description=transfer[TablesHeaders.DESCRIPTION.value],
+                )
+                created_transfer = await self.repo.create(new_transfer, session)
 
-        transfer_out = self.category_service.get_by_name("Transfer Out")
-        transfer_in = self.category_service.get_by_name("Transfer In")
+                transfer_out = await self.category_service.get_by_name("Transfer Out")
+                transfer_in = await self.category_service.get_by_name("Transfer In")
 
-        if transfer_in is None or transfer_out is None:
-            raise ValueError(
-                "Transfer categories not found: transfer_in or transfer_out is None"
-            )
+                if transfer_in is None or transfer_out is None:
+                    raise ValueError(
+                        "Transfer categories not found: transfer_in or transfer_out is None"
+                    )
 
-        withdraw = {
-            CSVHeaders.ACCOUNT_ID.value: transfer[CSVHeaders.FROM_ACCOUNT_ID.value],
-            CSVHeaders.CATEGORY_ID.value: transfer_out[CSVHeaders.ID.value],
-            CSVHeaders.AMOUNT.value: transfer[CSVHeaders.AMOUNT.value],
-        }
+                withdraw = {
+                    TablesHeaders.ACCOUNT_ID.value: transfer[
+                        TablesHeaders.FROM_ACCOUNT_ID.value
+                    ],
+                    TablesHeaders.CATEGORY_ID.value: transfer_out[
+                        TablesHeaders.ID.value
+                    ],
+                    TablesHeaders.AMOUNT.value: transfer[TablesHeaders.AMOUNT.value],
+                }
 
-        deposit = {
-            CSVHeaders.ACCOUNT_ID.value: transfer[CSVHeaders.TO_ACCOUNT_ID.value],
-            CSVHeaders.CATEGORY_ID.value: transfer_in[CSVHeaders.ID.value],
-            CSVHeaders.AMOUNT.value: transfer[CSVHeaders.AMOUNT.value],
-        }
+                deposit = {
+                    TablesHeaders.ACCOUNT_ID.value: transfer[
+                        TablesHeaders.TO_ACCOUNT_ID.value
+                    ],
+                    TablesHeaders.CATEGORY_ID.value: transfer_in[
+                        TablesHeaders.ID.value
+                    ],
+                    TablesHeaders.AMOUNT.value: transfer[TablesHeaders.AMOUNT.value],
+                }
 
-        self.transaction_service.creat_trnsaction(withdraw)
-        self.transaction_service.creat_trnsaction(deposit)
+                await self.transaction_service.creat_trnsaction(withdraw)
+                await self.transaction_service.creat_trnsaction(deposit)
 
-        return {"Message": "Transfer created"}
+            return created_transfer
 
-    def get_all_transfers(self) -> list[dict[str, Any]]:
+    async def get_all_transfers(self) -> list[dict[str, Any]]:
         """Returns all transfers as dicts."""
-        transfers = self.repo.get_all()
+        async with self.session_maker() as session:
+            transfers = await self.repo.get_all(session)
+            return [transfer_to_dict(transfer) for transfer in transfers]
 
-        return [transfer_to_dict(transfer) for transfer in transfers]
-
-    def get_all_by_account(self, account_id: UUID) -> list[dict[str, Any]]:
+    async def get_all_by_account(self, account_id: UUID) -> list[dict[str, Any]]:
         """Returns all transfers for account."""
-        all_transfers = self.repo.get_all()
-        return [
-            transfer_to_dict(transfer)
-            for transfer in all_transfers
-            if transfer.from_account_id == account_id
-            or transfer.to_account_id == account_id
-        ]
+        async with self.session_maker() as session:
+            transfers = await self.repo.get_all(session)
+            return [
+                transfer_to_dict(transfer)
+                for transfer in transfers
+                if transfer.from_account_id == account_id
+                or transfer.to_account_id == account_id
+            ]
 
-    def get_by_id(self, transfer_id: UUID) -> dict[str, Any]:
+    async def get_by_id(self, transfer_id: UUID) -> dict[str, Any]:
         """Returns transfer by id."""
-        transfer = self.repo.get(transfer_id)
-        if transfer is None:
-            raise ValueError(f"Transfer with id {transfer_id} not found")
+        async with self.session_maker() as session:
+            transfer = await self.repo.get(transfer_id, session)
+            if transfer is None:
+                return None
+            return transfer_to_dict(transfer)
 
-        return transfer_to_dict(transfer)
-
-    def delete_transfer(self, transfer_id: UUID) -> dict[str, str]:
+    async def delete_transfer(self, transfer_id: UUID) -> dict[str, str]:
         """Deletes transfer and returns message."""
-        self.repo.delete(transfer_id)
-
-        return {"Message": "Transfer deleted"}
+        async with self.session_maker() as session:
+            await self.repo.delete(transfer_id, session)
+            return {"Message": "Transfer deleted"}

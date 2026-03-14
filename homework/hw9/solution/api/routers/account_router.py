@@ -16,7 +16,7 @@ ACCOUNT_NOT_FOUND = "Account not found"
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def create_account(account: dict[str, Any]) -> dict[str, str]:
+async def create_account(account: dict[str, Any]) -> dict[str, Any]:
     """Creates account."""
     for field in account_headers_request:
         if field not in account:
@@ -31,19 +31,19 @@ def create_account(account: dict[str, Any]) -> dict[str, str]:
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="opening_balance must be a number",
         )
-    return service.create_account(account)
+    return await service.create_account(account)
 
 
 @router.get("/")
-def get_accounts() -> list[dict[str, Any]]:
+async def get_accounts() -> list[dict[str, Any]]:
     """Returns all accounts."""
-    return service.get_all_accounts()
+    return await service.get_all_accounts()
 
 
 @router.get("/{account_id}")
-def get_account(account_id: str) -> dict[str, Any]:
+async def get_account(account_id: str) -> dict[str, Any]:
     try:
-        account = service.get_by_id(UUID(account_id))
+        account = await service.get_by_id(UUID(account_id))
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=IVALID_UUID_FORMAT
@@ -57,7 +57,7 @@ def get_account(account_id: str) -> dict[str, Any]:
 
 
 @router.put("/")
-def update_account(account: dict[str, Any]) -> dict[str, Any]:
+async def update_account(account: dict[str, Any]) -> dict[str, Any]:
     """Updates account."""
     if "id" not in account:
         raise HTTPException(
@@ -71,7 +71,7 @@ def update_account(account: dict[str, Any]) -> dict[str, Any]:
             status_code=status.HTTP_400_BAD_REQUEST, detail=IVALID_UUID_FORMAT
         )
 
-    updated_account = service.update_account(account)
+    updated_account = await service.update_account(account)
     if updated_account is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=ACCOUNT_NOT_FOUND
@@ -80,7 +80,7 @@ def update_account(account: dict[str, Any]) -> dict[str, Any]:
 
 
 @router.delete("/{account_id}")
-def delete_account(account_id: str) -> dict[str, str]:
+async def delete_account(account_id: str) -> dict[str, str]:
     try:
         id = UUID(account_id)
     except ValueError:
@@ -88,16 +88,16 @@ def delete_account(account_id: str) -> dict[str, str]:
             status_code=status.HTTP_400_BAD_REQUEST, detail=IVALID_UUID_FORMAT
         )
 
-    account = service.get_by_id(id)
+    account = await service.get_by_id(id)
     if account is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=ACCOUNT_NOT_FOUND
         )
-    return service.delete_account(id)
+    return await service.delete_account(id)
 
 
 @router.get("/{account_id}/balance")
-def calculate_balance(account_id: str) -> Decimal:
+async def calculate_balance(account_id: str) -> Decimal:
     """Returns balance for account."""
     try:
         id = UUID(account_id)
@@ -106,15 +106,15 @@ def calculate_balance(account_id: str) -> Decimal:
             status_code=status.HTTP_400_BAD_REQUEST, detail=IVALID_UUID_FORMAT
         )
 
-    account = service.get_by_id(id)
+    account = await service.get_by_id(id)
     if account is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=ACCOUNT_NOT_FOUND
         )
-    return service.calculate_balance(id)
+    return await service.calculate_balance(id)
 
 
 @router.get("/get/net/worth")
-def calculate_net_worth() -> Decimal:
+async def calculate_net_worth() -> Decimal:
     """Returns net worth of all accounts."""
-    return service.calculate_net_worth()
+    return await service.calculate_net_worth()

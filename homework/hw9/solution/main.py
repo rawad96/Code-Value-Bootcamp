@@ -1,9 +1,7 @@
 import uvicorn
 
 from solution.api.routers.app import app
-from seed.seed_default_categories import seed_categories
 
-seed_categories()
 
 PORT = 8000
 

@@ -5,7 +5,7 @@ from datetime import datetime
 from .account_service import AccountService
 from .transaction_service import TransactionService
 from .category_service import CategoryService
-from constants.headers import CSVHeaders
+from constants.headers import TablesHeaders
 
 INCOME = "income"
 EXPENSE = "expense"
@@ -30,20 +30,20 @@ class ReportsService:
 
         for transaction in transactions:
             if (
-                transaction[CSVHeaders.DATE.value].year == year
-                and transaction[CSVHeaders.DATE.value].month == month
+                transaction[TablesHeaders.DATE.value].year == year
+                and transaction[TablesHeaders.DATE.value].month == month
             ):
                 category = self.category_service.get_by_id(
-                    transaction[CSVHeaders.CATEGORY_ID.value]
+                    transaction[TablesHeaders.CATEGORY_ID.value]
                 )
 
                 if category is None:
                     raise ValueError(f"Missed Category")
 
-                if category[CSVHeaders.TYPE.value] == INCOME:
-                    income += Decimal(transaction[CSVHeaders.AMOUNT.value])
+                if category[TablesHeaders.TYPE.value] == INCOME:
+                    income += Decimal(transaction[TablesHeaders.AMOUNT.value])
                 else:
-                    expenses += Decimal(transaction[CSVHeaders.AMOUNT.value])
+                    expenses += Decimal(transaction[TablesHeaders.AMOUNT.value])
 
         net_flow = income - expenses
         return {
@@ -61,20 +61,22 @@ class ReportsService:
 
         for transaction in transactions:
             if (
-                transaction[CSVHeaders.DATE.value].year == year
-                and transaction[CSVHeaders.DATE.value].month == month
+                transaction[TablesHeaders.DATE.value].year == year
+                and transaction[TablesHeaders.DATE.value].month == month
             ):
                 category = self.category_service.get_by_id(
-                    transaction[CSVHeaders.CATEGORY_ID.value]
+                    transaction[TablesHeaders.CATEGORY_ID.value]
                 )
 
                 if category is None:
                     raise ValueError(f"Missed Category")
 
-                if category[CSVHeaders.TYPE.value] == EXPENSE:
-                    category_totals[category[CSVHeaders.NAME.value]] = (
-                        category_totals.get(category[CSVHeaders.NAME.value], Decimal(0))
-                        + Decimal(transaction[CSVHeaders.AMOUNT.value])
+                if category[TablesHeaders.TYPE.value] == EXPENSE:
+                    category_totals[category[TablesHeaders.NAME.value]] = (
+                        category_totals.get(
+                            category[TablesHeaders.NAME.value], Decimal(0)
+                        )
+                        + Decimal(transaction[TablesHeaders.AMOUNT.value])
                     )
 
         return [
@@ -93,20 +95,20 @@ class ReportsService:
 
         for transaction in transactions:
             if (
-                transaction[CSVHeaders.DATE.value].year == now.year
-                and transaction[CSVHeaders.DATE.value].month == now.month
+                transaction[TablesHeaders.DATE.value].year == now.year
+                and transaction[TablesHeaders.DATE.value].month == now.month
             ):
                 category = self.category_service.get_by_id(
-                    transaction[CSVHeaders.CATEGORY_ID.value]
+                    transaction[TablesHeaders.CATEGORY_ID.value]
                 )
 
                 if category is None:
                     raise ValueError(f"Missed Category")
 
-                if category[CSVHeaders.TYPE.value] == INCOME:
-                    monthly_income += Decimal(transaction[CSVHeaders.AMOUNT.value])
+                if category[TablesHeaders.TYPE.value] == INCOME:
+                    monthly_income += Decimal(transaction[TablesHeaders.AMOUNT.value])
                 else:
-                    monthly_expenses += Decimal(transaction[CSVHeaders.AMOUNT.value])
+                    monthly_expenses += Decimal(transaction[TablesHeaders.AMOUNT.value])
 
         return {
             "net_worth": str(net_worth),
