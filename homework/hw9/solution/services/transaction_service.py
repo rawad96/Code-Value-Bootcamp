@@ -54,7 +54,7 @@ class TransactionService:
             return [
                 transaction_to_dict(transaction)
                 for transaction in transactions
-                if transaction.account_id == account_id
+                if transaction.account_id == str(account_id)
             ]
 
     async def get_by_id(self, transaction_id: UUID) -> dict[str, Any] | None:

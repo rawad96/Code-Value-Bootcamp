@@ -77,7 +77,7 @@ class TransferService:
                 await self.transaction_service.creat_trnsaction(withdraw)
                 await self.transaction_service.creat_trnsaction(deposit)
 
-            return created_transfer
+            return transfer_to_dict(created_transfer)
 
     async def get_all_transfers(self) -> list[dict[str, Any]]:
         """Returns all transfers as dicts."""
@@ -92,8 +92,8 @@ class TransferService:
             return [
                 transfer_to_dict(transfer)
                 for transfer in transfers
-                if transfer.from_account_id == account_id
-                or transfer.to_account_id == account_id
+                if transfer.from_account_id == str(account_id)
+                or transfer.to_account_id == str(account_id)
             ]
 
     async def get_by_id(self, transfer_id: UUID) -> dict[str, Any]:
