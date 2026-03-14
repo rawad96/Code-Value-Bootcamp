@@ -6,5 +6,5 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class CategoryRepository(BaseRepository[Category]):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(Category)

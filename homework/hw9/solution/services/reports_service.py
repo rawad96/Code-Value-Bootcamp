@@ -7,6 +7,7 @@ from .transaction_service import TransactionService
 from .category_service import CategoryService
 from constants.headers import TablesHeaders
 
+
 INCOME = "income"
 EXPENSE = "expense"
 
@@ -22,9 +23,11 @@ class ReportsService:
         self.transaction_service = transaction_service or TransactionService()
         self.category_service = category_service or CategoryService()
 
-    def monthly_summary(self, year: int, month: int) -> dict[str, Any]:
+    async def monthly_summary(self, year: int, month: int) -> dict[str, Any]:
         """Returns income, expenses and net flow for month."""
-        transactions = self.transaction_service.get_all_transaction()
+        transactions = await self.transaction_service.get_all_transaction()
+        category_cache = await self._build_category_cache()
+
         income = Decimal(0)
         expenses = Decimal(0)
 
@@ -33,12 +36,12 @@ class ReportsService:
                 transaction[TablesHeaders.DATE.value].year == year
                 and transaction[TablesHeaders.DATE.value].month == month
             ):
-                category = self.category_service.get_by_id(
+                category = category_cache.get(
                     transaction[TablesHeaders.CATEGORY_ID.value]
                 )
 
                 if category is None:
-                    raise ValueError(f"Missed Category")
+                    raise ValueError("Missed Category")
 
                 if category[TablesHeaders.TYPE.value] == INCOME:
                     income += Decimal(transaction[TablesHeaders.AMOUNT.value])
@@ -46,6 +49,7 @@ class ReportsService:
                     expenses += Decimal(transaction[TablesHeaders.AMOUNT.value])
 
         net_flow = income - expenses
+
         return {
             "year": year,
             "month": month,
@@ -54,9 +58,11 @@ class ReportsService:
             "net_cash_flow": str(net_flow),
         }
 
-    def spending_by_category(self, year: int, month: int) -> list[dict[str, Any]]:
+    async def spending_by_category(self, year: int, month: int) -> list[dict[str, Any]]:
         """Returns total per category for month."""
-        transactions = self.transaction_service.get_all_transaction()
+        transactions = await self.transaction_service.get_all_transaction()
+        category_cache = await self._build_category_cache()
+
         category_totals: dict[str, Decimal] = {}
 
         for transaction in transactions:
@@ -64,32 +70,33 @@ class ReportsService:
                 transaction[TablesHeaders.DATE.value].year == year
                 and transaction[TablesHeaders.DATE.value].month == month
             ):
-                category = self.category_service.get_by_id(
+                category = category_cache.get(
                     transaction[TablesHeaders.CATEGORY_ID.value]
                 )
 
                 if category is None:
-                    raise ValueError(f"Missed Category")
+                    raise ValueError("Missed Category")
 
                 if category[TablesHeaders.TYPE.value] == EXPENSE:
-                    category_totals[category[TablesHeaders.NAME.value]] = (
-                        category_totals.get(
-                            category[TablesHeaders.NAME.value], Decimal(0)
-                        )
-                        + Decimal(transaction[TablesHeaders.AMOUNT.value])
-                    )
+                    name = category[TablesHeaders.NAME.value]
+
+                    category_totals[name] = category_totals.get(
+                        name, Decimal(0)
+                    ) + Decimal(transaction[TablesHeaders.AMOUNT.value])
 
         return [
             {"category": key, "total": str(value)}
             for key, value in category_totals.items()
         ]
 
-    def dashboard(self) -> dict[str, Any]:
+    async def dashboard(self) -> dict[str, Any]:
         """Returns net worth and current month summary."""
         now = datetime.now()
-        net_worth = self.account_service.calculate_net_worth()
 
-        transactions = self.transaction_service.get_all_transaction()
+        net_worth = await self.account_service.calculate_net_worth()
+        transactions = await self.transaction_service.get_all_transaction()
+        category_cache = await self._build_category_cache()
+
         monthly_income = Decimal(0)
         monthly_expenses = Decimal(0)
 
@@ -98,12 +105,12 @@ class ReportsService:
                 transaction[TablesHeaders.DATE.value].year == now.year
                 and transaction[TablesHeaders.DATE.value].month == now.month
             ):
-                category = self.category_service.get_by_id(
+                category = category_cache.get(
                     transaction[TablesHeaders.CATEGORY_ID.value]
                 )
 
                 if category is None:
-                    raise ValueError(f"Missed Category")
+                    raise ValueError("Missed Category")
 
                 if category[TablesHeaders.TYPE.value] == INCOME:
                     monthly_income += Decimal(transaction[TablesHeaders.AMOUNT.value])
@@ -116,3 +123,9 @@ class ReportsService:
             "monthly_expenses": str(monthly_expenses),
             "monthly_net_cash_flow": str(monthly_income - monthly_expenses),
         }
+
+    async def _build_category_cache(self) -> dict[str, dict[str, Any]]:
+        """Load all categories and cache them by id."""
+        categories = await self.category_service.get_all_categories()
+
+        return {category[TablesHeaders.ID.value]: category for category in categories}

@@ -7,6 +7,7 @@ from constants.headers import TablesHeaders
 from solution.models.transaction import Transaction
 
 from solution.database import async_session_maker
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def transaction_to_dict(transaction: Transaction) -> dict[str, Any]:
@@ -24,7 +25,7 @@ class TransactionService:
     def __init__(
         self,
         repo: Optional[TransactionRepository] = None,
-        session_maker=None,
+        session_maker: AsyncSession = None,
     ):
         self.repo = repo or TransactionRepository()
         self.session_maker = session_maker or async_session_maker
@@ -60,7 +61,7 @@ class TransactionService:
     async def get_by_id(self, transaction_id: UUID) -> dict[str, Any] | None:
         """Returns transaction by id or None."""
         async with self.session_maker() as session:
-            transaction = await self.repo.get(transaction_id, session)
+            transaction = await self.repo.get(str(transaction_id), session)
             if transaction is None:
                 return None
             return transaction_to_dict(transaction)
@@ -68,5 +69,6 @@ class TransactionService:
     async def delete_transaction(self, transaction_id: UUID) -> dict[str, str]:
         """Deletes transaction and returns message."""
         async with self.session_maker() as session:
-            await self.repo.delete(transaction_id, session)
+            async with session.begin():
+                await self.repo.delete(str(transaction_id), session)
             return {"Message": "Transaction deleted"}

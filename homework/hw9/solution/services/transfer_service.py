@@ -7,6 +7,7 @@ from typing import Optional, Any
 from constants.headers import TablesHeaders
 
 from solution.database import async_session_maker
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def transfer_to_dict(transfer: Transfer) -> dict[str, Any]:
@@ -27,7 +28,7 @@ class TransferService:
         repo: Optional[TransferRepository] = None,
         transaction_service: Optional[TransactionService] = None,
         category_service: Optional[CategoryService] = None,
-        session_maker=None,
+        session_maker: AsyncSession = None,
     ):
         self.repo = repo or TransferRepository()
         self.transaction_service = transaction_service or TransactionService()
@@ -96,10 +97,10 @@ class TransferService:
                 or transfer.to_account_id == str(account_id)
             ]
 
-    async def get_by_id(self, transfer_id: UUID) -> dict[str, Any]:
+    async def get_by_id(self, transfer_id: UUID) -> dict[str, Any] | None:
         """Returns transfer by id."""
         async with self.session_maker() as session:
-            transfer = await self.repo.get(transfer_id, session)
+            transfer = await self.repo.get(str(transfer_id), session)
             if transfer is None:
                 return None
             return transfer_to_dict(transfer)
@@ -107,5 +108,6 @@ class TransferService:
     async def delete_transfer(self, transfer_id: UUID) -> dict[str, str]:
         """Deletes transfer and returns message."""
         async with self.session_maker() as session:
-            await self.repo.delete(transfer_id, session)
+            async with session.begin():
+                await self.repo.delete(str(transfer_id), session)
             return {"Message": "Transfer deleted"}

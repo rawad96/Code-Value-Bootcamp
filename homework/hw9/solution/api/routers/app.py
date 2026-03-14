@@ -13,7 +13,7 @@ app = FastAPI()
 
 
 @app.on_event("startup")
-async def startup_event():
+async def startup_event() -> None:
     await seed_categories()
 
 

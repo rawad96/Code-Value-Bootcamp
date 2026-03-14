@@ -9,10 +9,10 @@ service = ReportsService()
 
 
 @router.get("/monthly_summary")
-def monthly_summary(year: int, month: int) -> dict[str, Any]:
+async def monthly_summary(year: int, month: int) -> dict[str, Any]:
     """Returns income, expenses and net flow for month."""
     try:
-        summary = service.monthly_summary(year, month)
+        summary = await service.monthly_summary(year, month)
     except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -23,9 +23,9 @@ def monthly_summary(year: int, month: int) -> dict[str, Any]:
 
 
 @router.get("/spending_by_category")
-def spending_by_category(year: int, month: int) -> list[dict[str, Any]]:
+async def spending_by_category(year: int, month: int) -> list[dict[str, Any]]:
     try:
-        spending = service.spending_by_category(year, month)
+        spending = await service.spending_by_category(year, month)
 
     except Exception as error:
         raise HTTPException(
@@ -37,10 +37,10 @@ def spending_by_category(year: int, month: int) -> list[dict[str, Any]]:
 
 
 @router.get("/dashboard")
-def dashboard() -> dict[str, Any]:
+async def dashboard() -> dict[str, Any]:
     """Returns net worth and current month summary."""
     try:
-        dashboard = service.dashboard()
+        dashboard = await service.dashboard()
     except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

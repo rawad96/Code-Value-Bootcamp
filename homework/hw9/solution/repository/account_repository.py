@@ -3,5 +3,5 @@ from ..models.account import Account
 
 
 class AccountRepository(BaseRepository[Account]):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(Account)

@@ -7,5 +7,5 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TransferRepository(BaseRepository[Transfer]):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(Transfer)

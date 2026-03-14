@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TransactionRepository(BaseRepository[Transaction]):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(Transaction)
 
     def _parse_date(self, date_str: str) -> date:

@@ -5,10 +5,12 @@ from ..models.category import CategoryType
 from .category_service import CategoryService
 
 from solution.database import async_session_maker
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from uuid import UUID
 from decimal import Decimal
 from typing import Optional, Any
+import asyncio
 
 from constants.headers import TablesHeaders
 
@@ -29,7 +31,7 @@ class AccountService:
         repo: Optional[AccountRepository] = None,
         transaction_service: Optional[TransactionService] = None,
         category_service: Optional[CategoryService] = None,
-        session_maker=None,
+        session_maker: AsyncSession = None,
     ):
         self.repo = repo or AccountRepository()
         self.transaction_service = transaction_service or TransactionService()
@@ -58,7 +60,7 @@ class AccountService:
     async def get_by_id(self, account_id: UUID) -> dict[str, Any] | None:
         """Returns account by id or None."""
         async with self.session_maker() as session:
-            account = await self.repo.get(account_id, session)
+            account = await self.repo.get(str(account_id), session)
             if account is None:
                 return None
             return account_to_dict(account)
@@ -79,48 +81,52 @@ class AccountService:
     async def delete_account(self, account_id: UUID) -> dict[str, str]:
         """Deletes account and returns message."""
         async with self.session_maker() as session:
-            await self.repo.delete(account_id, session)
+            async with session.begin():
+                await self.repo.delete(str(account_id), session)
             return {"Message": "Account deleted"}
 
     async def calculate_balance(self, account_id: UUID) -> Decimal:
         """Calculates balance for a given account."""
         async with self.session_maker() as session:
-            account = await self.repo.get(account_id, session)
+            account = await self.repo.get(str(account_id), session)
             if account is None:
                 raise ValueError(f"Account with id {account_id} not found")
 
-            transactions = await self.transaction_service.get_all_by_account(account_id)
-            balance = Decimal(account.opening_balance)
-            category_cache = {}
+        transactions = await self.transaction_service.get_all_by_account(account_id)
 
-            if not transactions:
-                return balance
+        balance = Decimal(account.opening_balance)
 
-            for transaction in transactions:
-                category_id = transaction[TablesHeaders.CATEGORY_ID.value]
-
-                if category_id not in category_cache:
-                    category_cache[category_id] = await self.category_service.get_by_id(
-                        category_id
-                    )
-
-                category_type = category_cache[category_id]
-                if category_type is None:
-                    raise ValueError(f"Missed Category Type for category {category_id}")
-
-                if category_type[TablesHeaders.TYPE.value] == CategoryType.INCOME.value:
-                    balance += Decimal(transaction[TablesHeaders.AMOUNT.value])
-                else:
-                    balance -= Decimal(transaction[TablesHeaders.AMOUNT.value])
-
+        if not transactions:
             return balance
+
+        category_cache = await self._build_category_cache()
+
+        for transaction in transactions:
+            category_id = transaction[TablesHeaders.CATEGORY_ID.value]
+
+            category = category_cache.get(category_id)
+            if category is None:
+                raise ValueError(f"Missed Category Type for category {category_id}")
+
+            if category[TablesHeaders.TYPE.value] == CategoryType.INCOME.value:
+                balance += Decimal(transaction[TablesHeaders.AMOUNT.value])
+            else:
+                balance -= Decimal(transaction[TablesHeaders.AMOUNT.value])
+
+        return balance
 
     async def calculate_net_worth(self) -> Decimal:
         """Returns total net worth of all accounts."""
         async with self.session_maker() as session:
             accounts = await self.repo.get_all(session)
-            net_worth = Decimal(0)
-            for account in accounts:
-                balance = await self.calculate_balance(account.id)
-                net_worth += balance
-            return net_worth
+        tasks = [self.calculate_balance(account.id) for account in accounts]
+
+        balances = await asyncio.gather(*tasks)
+
+        return sum(balances, Decimal(0))
+
+    async def _build_category_cache(self) -> dict[str, dict[str, Any]]:
+        """Load all categories and cache them by id."""
+        categories = await self.category_service.get_all_categories()
+
+        return {category[TablesHeaders.ID.value]: category for category in categories}

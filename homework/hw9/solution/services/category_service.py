@@ -1,9 +1,11 @@
 from ..repository.category_repository import CategoryRepository
 from ..models.category import Category, CategoryType
-from uuid import uuid4, UUID
-from typing import Optional, Any
+from uuid import UUID
+from typing import Optional, Any, Iterable
 
 from solution.database import async_session_maker
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 
 def category_to_dict(category: Category) -> dict[str, Any]:
@@ -22,7 +24,7 @@ class CategoryService:
     def __init__(
         self,
         repo: Optional[CategoryRepository] = None,
-        session_maker=None,
+        session_maker: AsyncSession = None,
     ):
         self.repo = repo or CategoryRepository()
         self.session_maker = session_maker or async_session_maker
@@ -47,7 +49,7 @@ class CategoryService:
     async def get_by_id(self, category_id: UUID) -> dict[str, Any] | None:
         """Returns category by id or None."""
         async with self.session_maker() as session:
-            category = await self.repo.get(category_id, session)
+            category = await self.repo.get(str(category_id), session)
             if category is None:
                 return None
             return category_to_dict(category)
@@ -76,5 +78,18 @@ class CategoryService:
     async def delete_category(self, category_id: UUID) -> dict[str, str]:
         """Deletes category and returns message."""
         async with self.session_maker() as session:
-            await self.repo.delete(category_id, session)
+            async with session.begin():
+                await self.repo.delete(str(category_id), session)
             return {"Message": "Category deleted"}
+
+    async def get_by_ids(
+        self,
+        ids: Iterable[str],
+        session: AsyncSession,
+    ) -> list[Category]:
+        """Return entities by a collection of ids."""
+        async with self.session_maker() as session:
+            stmt = select(Category).where(Category.id.in_(ids))
+            result = await session.execute(stmt)
+
+            return list(result.scalars().all())
