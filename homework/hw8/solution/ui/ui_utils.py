@@ -55,11 +55,15 @@ def choose_transaction() -> str:
     transactions = get("/transactions/")
 
     for index, transaction in enumerate(transactions, start=1):
+        amount = transaction[CSVHeaders.AMOUNT.value]
+        account_id = transaction[CSVHeaders.ACCOUNT_ID.value]
+        category_id = transaction[CSVHeaders.CATEGORY_ID.value]
+        date = transaction[CSVHeaders.DATE.value]
         print(
-            f"{index}. {CSVHeaders.AMOUNT.value}:{transaction[CSVHeaders.AMOUNT.value]} "
-            f"{CSVHeaders.ACCOUNT_ID.value}:{transaction[CSVHeaders.ACCOUNT_ID.value]} "
-            f"{CSVHeaders.CATEGORY_ID.value}:{transaction[CSVHeaders.CATEGORY_ID.value]} "
-            f"{CSVHeaders.DATE.value}:{transaction[CSVHeaders.DATE.value]}"
+            f"{index}. amount:{amount} "
+            f"account_id:{account_id} "
+            f"category_id:{category_id} "
+            f"date:{date}"
         )
 
     choice = int(input("Choose transaction: ")) - 1
@@ -72,11 +76,10 @@ def choose_transfer() -> str:
     transfers = get("/transfers/")
 
     for index, transfer in enumerate(transfers, start=1):
-        print(
-            f"{index}. {transfer[CSVHeaders.FROM_ACCOUNT_ID.value]} -> "
-            f"{transfer[CSVHeaders.TO_ACCOUNT_ID.value]} | "
-            f"{transfer[CSVHeaders.AMOUNT.value]}"
-        )
+        from_account_id = transfer[CSVHeaders.FROM_ACCOUNT_ID.value]
+        to_account_id = transfer[CSVHeaders.TO_ACCOUNT_ID.value]
+        amount = transfer[CSVHeaders.AMOUNT.value]
+        print(f"{index}. {from_account_id} -> " f"{to_account_id} | " f"{amount}")
 
     choice = int(input("Choose transfer: ")) - 1
 
