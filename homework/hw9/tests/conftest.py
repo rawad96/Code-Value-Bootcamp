@@ -19,7 +19,7 @@ class AsyncContextManager:
         return self.obj
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        pass
+        """"""
 
 
 @pytest.fixture

@@ -44,14 +44,15 @@ async def test_creat_transfer(transfer_service: TransferService) -> None:
         side_effect=[transfer_out, transfer_in],
     )
 
+    transfer_service.transaction_service.creat_trnsaction = AsyncMock()
+
     result = await transfer_service.creat_transfer(test_data)
 
     session = transfer_service.session_maker.return_value.obj
 
-    assert session.begin.call_count == 3
+    assert session.begin.call_count == 1
     transfer_service.session_maker.assert_called()
 
-    transfer_service.transaction_service.creat_trnsaction = AsyncMock()
     transfer_service.transaction_service.creat_trnsaction.assert_awaited()
 
     transfer_service.repo.create.assert_awaited_once()
