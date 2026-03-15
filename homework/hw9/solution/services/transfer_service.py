@@ -35,7 +35,7 @@ class TransferService:
         self.category_service = category_service or CategoryService()
         self.session_maker = session_maker or async_session_maker
 
-    async def creat_transfer(self, transfer: dict[str, Any]) -> dict[str, str]:
+    async def creat_transfer(self, transfer: dict[str, Any]) -> dict[str, Any]:
         """Creates transfer and returns it."""
         async with self.session_maker() as session:
             async with session.begin():
@@ -45,7 +45,6 @@ class TransferService:
                     amount=transfer[TablesHeaders.AMOUNT.value],
                     description=transfer[TablesHeaders.DESCRIPTION.value],
                 )
-                created_transfer = await self.repo.create(new_transfer, session)
 
                 transfer_out = await self.category_service.get_by_name("Transfer Out")
                 transfer_in = await self.category_service.get_by_name("Transfer In")
@@ -77,6 +76,7 @@ class TransferService:
 
                 await self.transaction_service.creat_trnsaction(withdraw)
                 await self.transaction_service.creat_trnsaction(deposit)
+                created_transfer = await self.repo.create(new_transfer, session)
 
             return transfer_to_dict(created_transfer)
 

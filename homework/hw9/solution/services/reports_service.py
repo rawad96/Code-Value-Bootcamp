@@ -125,7 +125,7 @@ class ReportsService:
         }
 
     async def _build_category_cache(self) -> dict[str, dict[str, Any]]:
-        """Load all categories and cache them by id."""
+        """Returns all categories ids."""
         categories = await self.category_service.get_all_categories()
 
         return {category[TablesHeaders.ID.value]: category for category in categories}

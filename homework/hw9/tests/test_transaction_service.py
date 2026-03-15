@@ -1,148 +1,147 @@
 from unittest.mock import Mock
-from uuid import uuid4, UUID
-from decimal import Decimal
-from datetime import date
-from typing import Any
+from uuid import uuid4
+
 
 import pytest
 
-from constants.headers import CSVHeaders
+from constants.headers import TablesHeaders
 from solution.services.transaction_service import TransactionService
-from solution.models.transaction import Transaction
 
 
-ACCOUNT_ID = CSVHeaders.ACCOUNT_ID.value
-CATEGORY_ID = CSVHeaders.CATEGORY_ID.value
-AMOUNT = CSVHeaders.AMOUNT.value
+ACCOUNT_ID = TablesHeaders.ACCOUNT_ID.value
+CATEGORY_ID = TablesHeaders.CATEGORY_ID.value
+AMOUNT = TablesHeaders.AMOUNT.value
 MESSAGE = "Message"
 
 
-@pytest.fixture
-def mock_repo() -> Mock:
-    """Returns mock repo."""
-    return Mock()
-
-
-@pytest.fixture
-def service(mock_repo: Mock) -> TransactionService:
-    """Returns TransactionService with mock repo."""
-    return TransactionService(repo=mock_repo)
-
-
-def test_create_transaction(service: TransactionService, mock_repo: Mock) -> None:
-    """Checks creat_trnsaction calls repo.create and returns message."""
-    transaction_data: dict[str, Any] = {
-        ACCOUNT_ID: uuid4(),
-        CATEGORY_ID: uuid4(),
-        AMOUNT: Decimal(1000),
+@pytest.mark.asyncio
+async def test_creat_trnsaction(transaction_service: TransactionService) -> None:
+    created_id = uuid4()
+    test_data = {
+        TablesHeaders.ACCOUNT_ID.value: "acc1",
+        TablesHeaders.CATEGORY_ID.value: "cat1",
+        TablesHeaders.AMOUNT.value: 500,
     }
 
-    result = service.creat_trnsaction(transaction_data)
+    mock_transaction = Mock()
+    mock_transaction.id = created_id
+    mock_transaction.account_id = test_data[TablesHeaders.ACCOUNT_ID.value]
+    mock_transaction.category_id = test_data[TablesHeaders.CATEGORY_ID.value]
+    mock_transaction.amount = test_data[TablesHeaders.AMOUNT.value]
+    transaction_service.repo.create.return_value = mock_transaction
+    result = await transaction_service.creat_trnsaction(test_data)
+    session = transaction_service.session_maker.return_value.obj
 
-    mock_repo.create.assert_called_once()
+    session.begin.assert_called_once()
+    transaction_service.session_maker.assert_called_once()
+    transaction_service.repo.create.assert_awaited_once()
 
-    assert result == {MESSAGE: "Trnsaction created"}
+    new_transaction, session_passed = transaction_service.repo.create.call_args[0]
 
+    assert new_transaction.account_id == test_data[TablesHeaders.ACCOUNT_ID.value]
+    assert new_transaction.category_id == test_data[TablesHeaders.CATEGORY_ID.value]
+    assert new_transaction.amount == test_data[TablesHeaders.AMOUNT.value]
+    assert session_passed is session
 
-def test_get_all_transaction(service: TransactionService, mock_repo: Mock) -> None:
-    """Checks get_all_transaction returns list of dicts."""
-    transactions = [
-        Transaction(
-            id=uuid4(),
-            account_id=uuid4(),
-            category_id=uuid4(),
-            amount=Decimal(200),
-            date=date.today(),
-            is_deleted="false",
-        ),
-        Transaction(
-            id=uuid4(),
-            account_id=uuid4(),
-            category_id=uuid4(),
-            amount=Decimal(50),
-            date=date.today(),
-            is_deleted="false",
-        ),
-    ]
-
-    mock_repo.get_all.return_value = transactions
-
-    result = service.get_all_transaction()
-
-    mock_repo.get_all.assert_called_once()
-
-    assert len(result) == 2
-    assert result[0][AMOUNT] == Decimal(200)
+    assert result[TablesHeaders.AMOUNT.value] == test_data[TablesHeaders.AMOUNT.value]
 
 
-def test_get_all_by_account(service: TransactionService, mock_repo: Mock) -> None:
-    account_id: UUID = uuid4()
+@pytest.mark.asyncio
+async def test_get_all_transaction(transaction_service: TransactionService) -> None:
+    tr1 = Mock()
+    tr1.id = uuid4()
+    tr1.account_id = "acc1"
+    tr1.category_id = "cat1"
+    tr1.amount = 100
 
-    transaction_one = Transaction(
-        id=uuid4(),
-        account_id=account_id,
-        category_id=uuid4(),
-        amount=Decimal(100),
-        date=date.today(),
-        is_deleted="false",
-    )
+    tr2 = Mock()
+    tr2.id = uuid4()
+    tr2.account_id = "acc2"
+    tr2.category_id = "cat2"
+    tr2.amount = 200
 
-    transaction_two = Transaction(
-        id=uuid4(),
-        account_id=account_id,
-        category_id=uuid4(),
-        amount=Decimal(50),
-        date=date.today(),
-        is_deleted="false",
-    )
+    transaction_service.repo.get_all.return_value = [tr1, tr2]
+    result = await transaction_service.get_all_transaction()
+    session = transaction_service.session_maker.return_value.obj
 
-    transaction_three = Transaction(
-        id=uuid4(),
-        account_id=uuid4(),
-        category_id=uuid4(),
-        amount=Decimal(70),
-        date=date.today(),
-        is_deleted="false",
-    )
-
-    mock_repo.get_all.return_value = [
-        transaction_one,
-        transaction_two,
-        transaction_three,
-    ]
-
-    result = service.get_all_by_account(account_id)
+    transaction_service.session_maker.assert_called_once()
+    transaction_service.repo.get_all.assert_awaited_once_with(session)
 
     assert len(result) == 2
+    assert result[0][TablesHeaders.AMOUNT.value] == tr1.amount
+    assert result[1][TablesHeaders.AMOUNT.value] == tr2.amount
 
 
-def test_get_by_id(service: TransactionService, mock_repo: Mock) -> None:
-    """Checks get_by_id returns transaction dict."""
-    transaction_id: UUID = uuid4()
+@pytest.mark.asyncio
+async def test_get_all_by_account(transaction_service: TransactionService) -> None:
+    account_id = uuid4()
 
-    transaction = Transaction(
-        id=transaction_id,
-        account_id=uuid4(),
-        category_id=uuid4(),
-        amount=Decimal(100),
-        date=date.today(),
-        is_deleted="false",
+    tr1 = Mock()
+    tr1.id = uuid4()
+    tr1.account_id = str(account_id)
+    tr1.category_id = "cat1"
+    tr1.amount = 100
+
+    tr2 = Mock()
+    tr2.id = uuid4()
+    tr2.account_id = "other"
+    tr2.category_id = "cat2"
+    tr2.amount = 200
+
+    transaction_service.repo.get_all.return_value = [tr1, tr2]
+    result = await transaction_service.get_all_by_account(account_id)
+    session = transaction_service.session_maker.return_value.obj
+    transaction_service.repo.get_all.assert_awaited_once_with(session)
+
+    assert len(result) == 1
+    assert result[0][TablesHeaders.AMOUNT.value] == tr1.amount
+
+
+@pytest.mark.asyncio
+async def test_get_by_id(transaction_service: TransactionService) -> None:
+    transaction_id = uuid4()
+
+    mock_transaction = Mock()
+    mock_transaction.id = transaction_id
+    mock_transaction.account_id = "acc1"
+    mock_transaction.category_id = "cat1"
+    mock_transaction.amount = 500
+
+    transaction_service.repo.get.return_value = mock_transaction
+    result = await transaction_service.get_by_id(transaction_id)
+    session = transaction_service.session_maker.return_value.obj
+
+    transaction_service.session_maker.assert_called_once()
+    transaction_service.repo.get.assert_awaited_once_with(
+        str(transaction_id),
+        session,
     )
 
-    mock_repo.get.return_value = transaction
-
-    result = service.get_by_id(transaction_id)
-
-    mock_repo.get.assert_called_once_with(transaction_id)
-
-    assert result["id"] == str(transaction_id)
+    assert result[TablesHeaders.AMOUNT.value] == mock_transaction.amount
 
 
-def test_delete_transaction(service: TransactionService, mock_repo: Mock) -> None:
-    """Checks delete_transaction calls repo.delete and returns message."""
-    transaction_id: UUID = uuid4()
+@pytest.mark.asyncio
+async def test_get_by_id_not_found(
+    transaction_service: TransactionService,
+) -> None:
+    transaction_id = uuid4()
+    transaction_service.repo.get.return_value = None
+    result = await transaction_service.get_by_id(transaction_id)
 
-    result = service.delete_transaction(transaction_id)
-    mock_repo.delete.assert_called_once_with(transaction_id)
+    assert result is None
 
-    assert result == {MESSAGE: "Transaction deleted"}
+
+@pytest.mark.asyncio
+async def test_delete_transaction(
+    transaction_service: TransactionService,
+) -> None:
+    transaction_id = uuid4()
+    result = await transaction_service.delete_transaction(transaction_id)
+    session = transaction_service.session_maker.return_value.obj
+
+    transaction_service.repo.delete.assert_awaited_once_with(
+        str(transaction_id),
+        session,
+    )
+
+    assert result == {"Message": "Transaction deleted"}

@@ -55,8 +55,6 @@ class AccountService:
             accounts = await self.repo.get_all(session)
             return [account_to_dict(account) for account in accounts]
 
-        return [account_to_dict(account) for account in accounts]
-
     async def get_by_id(self, account_id: UUID) -> dict[str, Any] | None:
         """Returns account by id or None."""
         async with self.session_maker() as session:
@@ -116,7 +114,7 @@ class AccountService:
         return balance
 
     async def calculate_net_worth(self) -> Decimal:
-        """Returns total net worth of all accounts."""
+        """Returns net worth of all accounts."""
         async with self.session_maker() as session:
             accounts = await self.repo.get_all(session)
         tasks = [self.calculate_balance(account.id) for account in accounts]
@@ -126,7 +124,7 @@ class AccountService:
         return sum(balances, Decimal(0))
 
     async def _build_category_cache(self) -> dict[str, dict[str, Any]]:
-        """Load all categories and cache them by id."""
+        """Returns all categories ids."""
         categories = await self.category_service.get_all_categories()
 
         return {category[TablesHeaders.ID.value]: category for category in categories}

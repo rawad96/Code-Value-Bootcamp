@@ -1,203 +1,218 @@
 import pytest
-from unittest.mock import Mock
-from decimal import Decimal
-from uuid import uuid4, UUID
-from typing import Any
+from unittest.mock import Mock, AsyncMock
+from uuid import uuid4
 
 from solution.services.account_service import AccountService
-from solution.models.account import Account
 from solution.models.category import CategoryType
 
-from constants.headers import CSVHeaders
+from decimal import Decimal
 
-MESSAGE = "Message"
+from constants.headers import TablesHeaders
 
-
-@pytest.fixture
-def mock_repo() -> Mock:
-    """Returns mock repo."""
-    return Mock()
+test_data = {"name": "Test Bank", "opening_balance": 1000}
 
 
-@pytest.fixture
-def mock_transaction_service() -> Mock:
-    """Returns mock transaction service."""
-    return Mock()
+@pytest.mark.asyncio
+async def test_create_account(account_service: AccountService) -> None:
+    created_id = uuid4()
+    mock_account = Mock()
+    mock_account.id = created_id
+    mock_account.name = test_data[TablesHeaders.NAME.value]
+    mock_account.opening_balance = test_data[TablesHeaders.OPENING_BALANCE.value]
+    mock_account.is_deleted = False
 
+    account_service.repo.create.return_value = mock_account
 
-@pytest.fixture
-def mock_category_service() -> Mock:
-    """Returns mock category service."""
-    return Mock()
+    result = await account_service.create_account(test_data)
 
+    session = account_service.session_maker.return_value.obj
+    session.begin.assert_called_once()
+    account_service.session_maker.assert_called_once()
+    account_service.repo.create.assert_awaited_once()
 
-@pytest.fixture
-def service(
-    mock_repo: Mock,
-    mock_transaction_service: Mock,
-    mock_category_service: Mock,
-) -> AccountService:
-    return AccountService(
-        repo=mock_repo,
-        transaction_service=mock_transaction_service,
-        category_service=mock_category_service,
+    new_account, session_passed = account_service.repo.create.call_args[0]
+    assert new_account.name == test_data[TablesHeaders.NAME.value]
+    assert new_account.opening_balance == test_data[TablesHeaders.OPENING_BALANCE.value]
+    assert session_passed is session
+
+    assert result[TablesHeaders.NAME.value] == test_data[TablesHeaders.NAME.value]
+    assert result[TablesHeaders.OPENING_BALANCE.value] == str(
+        test_data[TablesHeaders.OPENING_BALANCE.value]
     )
+    assert result[TablesHeaders.ID.value] == str(created_id)
+    assert result[TablesHeaders.IS_DELETED.value] is False
 
 
-def test_create_account(service: AccountService, mock_repo: Mock) -> None:
-    """Checks create_account calls repo.create and returns message."""
-    account_data: dict[str, Any] = {
-        CSVHeaders.NAME.value: "Bank",
-        CSVHeaders.OPENING_BALANCE.value: Decimal(1200),
-    }
+@pytest.mark.asyncio
+async def test_get_all_accounts(account_service: AccountService) -> None:
+    first_acc = {"name": "Test Bank 1", "opening_balance": 1000}
+    second_acc = {"name": "Test Bank 2", "opening_balance": 2000}
 
-    result = service.create_account(account_data)
+    acc1 = Mock()
+    acc1.id = uuid4()
+    acc1.name = first_acc[TablesHeaders.NAME.value]
+    acc1.opening_balance = first_acc[TablesHeaders.OPENING_BALANCE.value]
+    acc1.is_deleted = False
 
-    mock_repo.create.assert_called_once()
+    acc2 = Mock()
+    acc2.id = uuid4()
+    acc2.name = second_acc[TablesHeaders.NAME.value]
+    acc2.opening_balance = second_acc[TablesHeaders.OPENING_BALANCE.value]
+    acc2.is_deleted = False
 
-    assert result == {MESSAGE: "Account created"}
+    account_service.repo.get_all.return_value = [acc1, acc2]
 
+    result = await account_service.get_all_accounts()
 
-def test_get_all_accounts(service: AccountService, mock_repo: Mock) -> None:
-    """Checks get_all_accounts returns list of dicts."""
-    accounts = [
-        Account(
-            id=uuid4(),
-            name="bank1",
-            opening_balance=Decimal(1000),
-            is_deleted="false",
-        ),
-        Account(
-            id=uuid4(),
-            name="bank2",
-            opening_balance=Decimal(2000),
-            is_deleted="false",
-        ),
-    ]
+    session = account_service.session_maker.return_value.obj
 
-    mock_repo.get_all.return_value = accounts
-
-    result = service.get_all_accounts()
-
-    mock_repo.get_all.assert_called_once()
+    account_service.session_maker.assert_called_once()
+    account_service.repo.get_all.assert_awaited_once_with(session)
 
     assert len(result) == 2
-    assert result[0][CSVHeaders.NAME.value] == "bank1"
+
+    assert result[0][TablesHeaders.NAME.value] == acc1.name
+    assert result[1][TablesHeaders.NAME.value] == acc2.name
+
+    assert result[0][TablesHeaders.ID.value] == str(acc1.id)
+    assert result[1][TablesHeaders.ID.value] == str(acc2.id)
 
 
-def test_get_by_id(service: AccountService, mock_repo: Mock) -> None:
-    """Checks get_by_id returns account dict."""
-    account_id: UUID = uuid4()
-
-    account = Account(
-        id=account_id,
-        name="Bank",
-        opening_balance=Decimal(1000),
-        is_deleted="false",
-    )
-
-    mock_repo.get.return_value = account
-
-    result = service.get_by_id(account_id)
-
-    mock_repo.get.assert_called_once_with(account_id)
-
-    assert result[CSVHeaders.ID.value] == str(account_id)
-
-
-def test_update_account(service: AccountService, mock_repo: Mock) -> None:
-    """Checks update_account calls repo.update and returns dict."""
+@pytest.mark.asyncio
+async def test_get_by_id(account_service: AccountService) -> None:
     account_id = uuid4()
 
-    account_data: dict[str, Any] = {
-        CSVHeaders.ID.value: account_id,
-        CSVHeaders.NAME.value: "Bank",
-        CSVHeaders.OPENING_BALANCE.value: Decimal(1000),
+    mock_account = Mock()
+    mock_account.id = account_id
+    mock_account.name = test_data[TablesHeaders.NAME.value]
+    mock_account.opening_balance = test_data[TablesHeaders.OPENING_BALANCE.value]
+    mock_account.is_deleted = False
+
+    account_service.repo.get.return_value = mock_account
+
+    result = await account_service.get_by_id(account_id)
+
+    session = account_service.session_maker.return_value.obj
+
+    account_service.session_maker.assert_called_once()
+    account_service.repo.get.assert_awaited_once_with(str(account_id), session)
+
+    assert result[TablesHeaders.ID.value] == str(account_id)
+    assert result[TablesHeaders.NAME.value] == test_data[TablesHeaders.NAME.value]
+
+
+@pytest.mark.asyncio
+async def test_get_by_id_not_found(account_service: AccountService) -> None:
+    account_id = uuid4()
+    account_service.repo.get.return_value = None
+    result = await account_service.get_by_id(account_id)
+
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_update_account(account_service: AccountService) -> None:
+    account_id = uuid4()
+
+    test_data = {
+        TablesHeaders.ID.value: account_id,
+        TablesHeaders.NAME.value: "Updated Bank",
+        TablesHeaders.OPENING_BALANCE.value: 2000,
     }
 
-    updated_account = Account(
-        id=account_id,
-        name="Bank",
-        opening_balance=Decimal(1000),
-        is_deleted="false",
-    )
+    mock_account = Mock()
+    mock_account.id = account_id
+    mock_account.name = test_data[TablesHeaders.NAME.value]
+    mock_account.opening_balance = test_data[TablesHeaders.OPENING_BALANCE.value]
+    mock_account.is_deleted = False
 
-    mock_repo.update.return_value = updated_account
+    account_service.repo.update.return_value = mock_account
 
-    result = service.update_account(account_data)
+    result = await account_service.update_account(test_data)
 
-    mock_repo.update.assert_called_once()
+    session = account_service.session_maker.return_value.obj
 
-    assert result[CSVHeaders.ID.value] == str(account_id)
+    account_service.repo.update.assert_awaited_once()
+
+    new_account, session_passed = account_service.repo.update.call_args[0]
+
+    assert new_account.name == test_data[TablesHeaders.NAME.value]
+    assert new_account.opening_balance == test_data[TablesHeaders.OPENING_BALANCE.value]
+    assert session_passed is session
+
+    assert result[TablesHeaders.NAME.value] == test_data[TablesHeaders.NAME.value]
 
 
-def test_delete_account(service: AccountService, mock_repo: Mock) -> None:
+@pytest.mark.asyncio
+async def test_delete_account(account_service: AccountService) -> None:
+    account_id = uuid4()
+    result = await account_service.delete_account(account_id)
+    session = account_service.session_maker.return_value.obj
+    account_service.repo.delete.assert_awaited_once_with(str(account_id), session)
+
+    assert result == {"Message": "Account deleted"}
+
+
+@pytest.mark.asyncio
+async def test_calculate_balance(account_service: AccountService) -> None:
     account_id = uuid4()
 
-    result = service.delete_account(account_id)
-    mock_repo.delete.assert_called_once_with(account_id)
+    mock_account = Mock()
+    mock_account.id = account_id
+    mock_account.opening_balance = test_data[TablesHeaders.OPENING_BALANCE.value]
 
-    assert result == {MESSAGE: "Account deleted"}
-
-
-def test_calculate_balance(
-    service: AccountService,
-    mock_repo: Mock,
-    mock_transaction_service: Mock,
-    mock_category_service: Mock,
-) -> None:
-    """Checks calculate_balance adds income and subtracts expenses."""
-    account_id = uuid4()
-
-    account = Account(
-        id=account_id,
-        name="Bank",
-        opening_balance=Decimal(1000),
-        is_deleted="false",
-    )
-
-    mock_repo.get.return_value = account
+    account_service.repo.get.return_value = mock_account
 
     transactions = [
-        {CSVHeaders.AMOUNT.value: "50", CSVHeaders.CATEGORY_ID.value: uuid4()},
-        {CSVHeaders.AMOUNT.value: "20", CSVHeaders.CATEGORY_ID.value: uuid4()},
+        {
+            TablesHeaders.AMOUNT.value: 500,
+            TablesHeaders.CATEGORY_ID.value: "1",
+        },
+        {
+            TablesHeaders.AMOUNT.value: 200,
+            TablesHeaders.CATEGORY_ID.value: "2",
+        },
     ]
 
-    mock_transaction_service.get_all_by_account.return_value = transactions
+    account_service.transaction_service.get_all_by_account.return_value = transactions
 
-    mock_category_service.get_by_id.side_effect = [
-        {CSVHeaders.TYPE.value: CategoryType.INCOME.value},
-        {CSVHeaders.TYPE.value: CategoryType.EXPENSE.value},
-    ]
+    category_cache = {
+        "1": {TablesHeaders.TYPE.value: CategoryType.INCOME.value},
+        "2": {TablesHeaders.TYPE.value: CategoryType.EXPENSE.value},
+    }
 
-    result = service.calculate_balance(account_id)
+    account_service._build_category_cache = AsyncMock(return_value=category_cache)
 
-    assert result == Decimal(1030)
+    result = await account_service.calculate_balance(account_id)
+
+    assert result == Decimal(1300)
 
 
-def test_calculate_net_worth(service: AccountService, mock_repo: Mock) -> None:
-    """Checks calculate_net_worth sums balance of all accounts."""
-    first_account_id = uuid4()
-    second_account_id = uuid4()
+@pytest.mark.asyncio
+async def test_calculate_balance_account_not_found(
+    account_service: AccountService,
+) -> None:
+    account_id = uuid4()
+    account_service.repo.get.return_value = None
 
-    first_account = Account(
-        id=first_account_id,
-        name="Bank",
-        opening_balance=Decimal(1000),
-        is_deleted="false",
+    with pytest.raises(ValueError):
+        await account_service.calculate_balance(account_id)
+
+
+@pytest.mark.asyncio
+async def test_calculate_net_worth(account_service: AccountService) -> None:
+    acc1 = Mock()
+    acc1.id = uuid4()
+
+    acc2 = Mock()
+    acc2.id = uuid4()
+
+    account_service.repo.get_all.return_value = [acc1, acc2]
+
+    account_service.calculate_balance = AsyncMock(
+        side_effect=[Decimal(1000), Decimal(2000)]
     )
 
-    second_account = Account(
-        id=second_account_id,
-        name="Cash",
-        opening_balance=Decimal(500),
-        is_deleted="false",
-    )
+    result = await account_service.calculate_net_worth()
 
-    mock_repo.get_all.return_value = [first_account, second_account]
-
-    service.calculate_balance = Mock(side_effect=[Decimal(1500), Decimal(400)])
-
-    result = service.calculate_net_worth()
-
-    assert result == Decimal(1900)
+    assert result == Decimal(3000)

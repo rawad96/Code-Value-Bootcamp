@@ -1,177 +1,190 @@
 from solution.services.transfer_service import TransferService
-from solution.models.transfer import Transfer
 
-from unittest.mock import Mock
+from unittest.mock import Mock, AsyncMock
 from uuid import uuid4
-from decimal import Decimal
-from typing import Any
-from datetime import date
 
 import pytest
 
-from constants.headers import CSVHeaders
+from constants.headers import TablesHeaders
 
 MESSAGE = "Message"
 
-
-@pytest.fixture
-def mock_repo() -> Mock:
-    """Returns mock repo."""
-    return Mock()
-
-
-@pytest.fixture
-def mock_transaction_service() -> Mock:
-    """Returns mock transaction service."""
-    return Mock()
+test_data = {
+    TablesHeaders.FROM_ACCOUNT_ID.value: "acc1",
+    TablesHeaders.TO_ACCOUNT_ID.value: "acc2",
+    TablesHeaders.AMOUNT.value: 500,
+    TablesHeaders.DESCRIPTION.value: "test transfer",
+}
 
 
-@pytest.fixture
-def mock_category_service() -> Mock:
-    """Returns mock category service."""
-    return Mock()
+@pytest.mark.asyncio
+async def test_creat_transfer(transfer_service: TransferService) -> None:
+    created_id = uuid4()
 
-
-@pytest.fixture
-def service(
-    mock_repo: Mock, mock_transaction_service: Mock, mock_category_service: Mock
-) -> TransferService:
-    """Returns TransferService with mocks."""
-    return TransferService(
-        repo=mock_repo,
-        transaction_service=mock_transaction_service,
-        category_service=mock_category_service,
-    )
-
-
-def test_create_transfer(
-    service: TransferService,
-    mock_repo: Mock,
-    mock_transaction_service: Mock,
-    mock_category_service: Mock,
-) -> None:
-    transfer_out = {CSVHeaders.ID.value: uuid4()}
-    transfer_in = {CSVHeaders.ID.value: uuid4()}
-
-    mock_category_service.get_by_name.side_effect = [transfer_out, transfer_in]
-
-    transfer_data: dict[str, Any] = {
-        CSVHeaders.FROM_ACCOUNT_ID.value: uuid4(),
-        CSVHeaders.TO_ACCOUNT_ID.value: uuid4(),
-        CSVHeaders.AMOUNT.value: Decimal(100),
-        CSVHeaders.DESCRIPTION.value: "Test transfer",
+    transfer_out = {
+        TablesHeaders.ID.value: "cat_out",
     }
 
-    result = service.creat_transfer(transfer_data)
+    transfer_in = {
+        TablesHeaders.ID.value: "cat_in",
+    }
 
-    mock_repo.create.assert_called_once()
-    assert mock_transaction_service.creat_trnsaction.call_count == 2
-    assert result == {MESSAGE: "Transfer created"}
+    mock_transfer = Mock()
+    mock_transfer.id = created_id
+    mock_transfer.from_account_id = test_data[TablesHeaders.FROM_ACCOUNT_ID.value]
+    mock_transfer.to_account_id = test_data[TablesHeaders.TO_ACCOUNT_ID.value]
+    mock_transfer.amount = test_data[TablesHeaders.AMOUNT.value]
+    mock_transfer.description = test_data[TablesHeaders.DESCRIPTION.value]
+    mock_transfer.date = Mock()
+    mock_transfer.date.isoformat.return_value = "2024-01-01"
 
+    transfer_service.repo.create.return_value = mock_transfer
 
-def test_get_all_transfers(service: TransferService, mock_repo: Mock) -> None:
-    """Checks get_all_transfers returns list of dicts."""
-    transfer_one = Transfer(
-        id=uuid4(),
-        from_account_id=uuid4(),
-        to_account_id=uuid4(),
-        amount=Decimal(100),
-        date=date.today(),
-        description="test",
-        is_deleted="false",
-    )
-    transfer_two = Transfer(
-        id=uuid4(),
-        from_account_id=uuid4(),
-        to_account_id=uuid4(),
-        amount=Decimal(50),
-        date=date.today(),
-        description="test",
-        is_deleted="false",
+    transfer_service.category_service.get_by_name = AsyncMock(
+        side_effect=[transfer_out, transfer_in],
     )
 
-    mock_repo.get_all.return_value = [transfer_one, transfer_two]
+    result = await transfer_service.creat_transfer(test_data)
 
-    result = service.get_all_transfers()
+    session = transfer_service.session_maker.return_value.obj
 
-    mock_repo.get_all.assert_called_once()
-    assert result[0][CSVHeaders.AMOUNT.value] == str(transfer_one.amount)
-    assert result[1][CSVHeaders.AMOUNT.value] == str(transfer_two.amount)
+    assert session.begin.call_count == 3
+    transfer_service.session_maker.assert_called()
+
+    transfer_service.transaction_service.creat_trnsaction = AsyncMock()
+    transfer_service.transaction_service.creat_trnsaction.assert_awaited()
+
+    transfer_service.repo.create.assert_awaited_once()
+
+    new_transfer, session_passed = transfer_service.repo.create.call_args[0]
+
+    assert new_transfer.amount == test_data[TablesHeaders.AMOUNT.value]
+    assert session_passed is session
+
+    assert result[TablesHeaders.ID.value] == str(created_id)
 
 
-def test_get_all_by_account(service: TransferService, mock_repo: Mock) -> None:
-    """Checks get_all_by_account returns only transfers for account."""
-    account_id = uuid4()
+@pytest.mark.asyncio
+async def test_creat_transfer_missing_categories(
+    transfer_service: TransferService,
+) -> None:
+    test_data = {
+        TablesHeaders.FROM_ACCOUNT_ID.value: "acc1",
+        TablesHeaders.TO_ACCOUNT_ID.value: "acc2",
+        TablesHeaders.AMOUNT.value: 500,
+        TablesHeaders.DESCRIPTION.value: "test transfer",
+    }
 
-    transfer_one = Transfer(
-        id=uuid4(),
-        from_account_id=account_id,
-        to_account_id=uuid4(),
-        amount=Decimal(100),
-        date=date.today(),
-        description="",
-        is_deleted="false",
-    )
-    transfer_two = Transfer(
-        id=uuid4(),
-        from_account_id=uuid4(),
-        to_account_id=account_id,
-        amount=Decimal(50),
-        date=date.today(),
-        description="",
-        is_deleted="false",
-    )
-    transfer_three = Transfer(
-        id=uuid4(),
-        from_account_id=uuid4(),
-        to_account_id=uuid4(),
-        amount=Decimal(70),
-        date=date.today(),
-        description="",
-        is_deleted="false",
+    transfer_service.category_service.get_by_name = AsyncMock(
+        return_value=None,
     )
 
-    mock_repo.get_all.return_value = [transfer_one, transfer_two, transfer_three]
+    with pytest.raises(ValueError):
+        await transfer_service.creat_transfer(test_data)
 
-    result = service.get_all_by_account(account_id)
+
+@pytest.mark.asyncio
+async def test_get_all_transfers(transfer_service: TransferService) -> None:
+    tr1 = Mock()
+    tr1.id = uuid4()
+    tr1.from_account_id = "acc1"
+    tr1.to_account_id = "acc2"
+    tr1.amount = 100
+    tr1.description = "t1"
+    tr1.date = Mock()
+    tr1.date.isoformat.return_value = "2024-01-01"
+
+    tr2 = Mock()
+    tr2.id = uuid4()
+    tr2.from_account_id = "acc3"
+    tr2.to_account_id = "acc4"
+    tr2.amount = 200
+    tr2.description = "t2"
+    tr2.date = Mock()
+    tr2.date.isoformat.return_value = "2024-01-02"
+
+    transfer_service.repo.get_all.return_value = [tr1, tr2]
+
+    result = await transfer_service.get_all_transfers()
+
+    session = transfer_service.session_maker.return_value.obj
+
+    transfer_service.session_maker.assert_called_once()
+    transfer_service.repo.get_all.assert_awaited_once_with(session)
 
     assert len(result) == 2
-    assert all(
-        account_id
-        in (
-            transfer[CSVHeaders.FROM_ACCOUNT_ID.value],
-            transfer[CSVHeaders.TO_ACCOUNT_ID.value],
-        )
-        for transfer in result
-    )
+    assert result[0][TablesHeaders.AMOUNT.value] == str(tr1.amount)
 
 
-def test_get_by_id(service: TransferService, mock_repo: Mock) -> None:
+@pytest.mark.asyncio
+async def test_get_all_by_account(transfer_service: TransferService) -> None:
+    account_id = uuid4()
+
+    tr1 = Mock()
+    tr1.id = uuid4()
+    tr1.from_account_id = str(account_id)
+    tr1.to_account_id = "acc2"
+    tr1.amount = 100
+    tr1.description = "t1"
+    tr1.date = Mock()
+    tr1.date.isoformat.return_value = "2024-01-01"
+
+    tr2 = Mock()
+    tr2.id = uuid4()
+    tr2.from_account_id = "other"
+    tr2.to_account_id = "acc3"
+    tr2.amount = 200
+    tr2.description = "t2"
+    tr2.date = Mock()
+    tr2.date.isoformat.return_value = "2024-01-02"
+
+    transfer_service.repo.get_all.return_value = [tr1, tr2]
+
+    result = await transfer_service.get_all_by_account(account_id)
+
+    session = transfer_service.session_maker.return_value.obj
+
+    transfer_service.repo.get_all.assert_awaited_once_with(session)
+
+    assert len(result) == 1
+
+
+@pytest.mark.asyncio
+async def test_get_by_id(transfer_service: TransferService) -> None:
     transfer_id = uuid4()
 
-    transfer = Transfer(
-        id=transfer_id,
-        from_account_id=uuid4(),
-        to_account_id=uuid4(),
-        amount=Decimal(100),
-        date=date.today(),
-        description="",
-        is_deleted="false",
+    mock_transfer = Mock()
+    mock_transfer.id = transfer_id
+    mock_transfer.from_account_id = "acc1"
+    mock_transfer.to_account_id = "acc2"
+    mock_transfer.amount = 500
+    mock_transfer.description = "test"
+    mock_transfer.date = Mock()
+    mock_transfer.date.isoformat.return_value = "2024-01-01"
+
+    transfer_service.repo.get.return_value = mock_transfer
+
+    result = await transfer_service.get_by_id(transfer_id)
+
+    session = transfer_service.session_maker.return_value.obj
+
+    transfer_service.session_maker.assert_called_once()
+    transfer_service.repo.get.assert_awaited_once_with(
+        str(transfer_id),
+        session,
     )
 
-    mock_repo.get.return_value = transfer
-
-    result = service.get_by_id(transfer_id)
-
-    mock_repo.get.assert_called_once_with(transfer_id)
-    assert result["id"] == str(transfer_id)
+    assert result[TablesHeaders.ID.value] == str(transfer_id)
 
 
-def test_delete_transfer(service: TransferService, mock_repo: Mock) -> None:
-    """Checks delete_transfer calls repo.delete and returns message."""
+@pytest.mark.asyncio
+async def test_get_by_id_not_found(
+    transfer_service: TransferService,
+) -> None:
     transfer_id = uuid4()
 
-    result = service.delete_transfer(transfer_id)
+    transfer_service.repo.get.return_value = None
 
-    mock_repo.delete.assert_called_once_with(transfer_id)
-    assert result == {MESSAGE: "Transfer deleted"}
+    result = await transfer_service.get_by_id(transfer_id)
+
+    assert result is None
